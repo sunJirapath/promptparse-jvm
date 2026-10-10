@@ -1,0 +1,21 @@
+[versions]
+kotlin = "2.4.21"
+kover = "0.9.11"
+binaryCompatibilityValidator = "0.18.2"
+mavenPublish = "0.37.0"
+# jqwik 1.10.x is built against JUnit Platform 1.14.x, so stay on the matching Jupiter 5.14.x line.
+junit = "5.14.4"
+jqwik = "1.10.2"
+
+[libraries]
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
