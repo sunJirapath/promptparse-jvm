@@ -88,8 +88,11 @@ class Utf8LengthTest {
         var idx = 0
         while (idx < payload.length) {
             val id = payload.substring(idx, minOf(idx + 2, payload.length))
-            val length = payload.substring(minOf(idx + 2, payload.length), minOf(idx + 4, payload.length)).toIntOrNull() ?: break
-            referenceStyle.add(id to payload.substring(minOf(idx + 4, payload.length), minOf(idx + 4 + length, payload.length)))
+            val length =
+                payload.substring(minOf(idx + 2, payload.length), minOf(idx + 4, payload.length)).toIntOrNull() ?: break
+            referenceStyle.add(
+                id to payload.substring(minOf(idx + 4, payload.length), minOf(idx + 4 + length, payload.length)),
+            )
             idx += length + 4
         }
         assertNotEquals(thai, referenceStyle.first().second)

@@ -51,12 +51,17 @@ class SlipVerifyTest {
         assertNull(SlipVerify.parse(std.dropLast(4))) // no CRC digits at all
         assertNull(SlipVerify.parse(tm)) // other variant
         assertNull(SlipVerify.parse(PromptPay.anyId(AnyIdType.MSISDN, "0812223333", java.math.BigDecimal(50)))) // tag 63 payload
-        assertNull(SlipVerify.parse("00020101021229370016A0000006770101110113006680111111153037645802TH540520.15630442BE"))
+        assertNull(
+            SlipVerify.parse("00020101021229370016A0000006770101110113006680111111153037645802TH540520.15630442BE"),
+        )
     }
 
     @Test
     fun `wrong API marker, missing fields and wrong root tag are null`() {
-        fun slip(root: String, tagId: String = "00"): String {
+        fun slip(
+            root: String,
+            tagId: String = "00",
+        ): String {
             val seed = "$tagId%02d%s5102TH9104".format(root.length, root)
             return seed + Tlv.checksum(seed)
         }
@@ -84,7 +89,12 @@ class SlipVerifyTest {
         assertFailsWith<IllegalArgumentException> { SlipVerify.build("00a", "R") }
         assertFailsWith<IllegalArgumentException> { SlipVerify.build("002", "") }
         assertFailsWith<IllegalArgumentException> { SlipVerify.build("002", "R".repeat(100)) }
-        for (n in 0 until 400) assertEquals(4, SlipVerify.build("014", "T%08d".format(n)).substringAfterLast("9104").length)
+        for (n in 0 until 400) {
+            assertEquals(
+                4,
+                SlipVerify.build("014", "T%08d".format(n)).substringAfterLast("9104").length,
+            )
+        }
     }
 
     // --- truncated CRC ----------------------------------------------------------------------
@@ -116,7 +126,14 @@ class SlipVerifyTest {
     @Test
     fun `a CRC whose digits spell the tag header is still found`() {
         // search for a slip whose CRC is literally 9104 so the payload ends in 91049104
-        val ref = (0 until 2_000_000).asSequence().map { "R$it" }.first { SlipVerify.build("014", it).endsWith("91049104") }
+        val ref =
+            (0 until 2_000_000).asSequence().map { "R$it" }.first {
+                SlipVerify
+                    .build(
+                        "014",
+                        it,
+                    ).endsWith("91049104")
+            }
         val wire = SlipVerify.build("014", ref)
         assertEquals(SlipVerifyInfo("014", ref), SlipVerify.parse(wire))
         assertEquals(SlipVerifyInfo("014", ref), SlipVerify.parse(wire, crcAutoFix = false))
@@ -127,7 +144,9 @@ class SlipVerifyTest {
     @Test
     fun `TrueMoney build matches thai-qr-payment byte for byte, lowercase CRC`() {
         assertEquals(tm, SlipVerify.buildTrueMoney("P2P", "TXN0001234567", "25012024"))
-        assertTrue(Regex("9104[0-9a-f]{4}$").containsMatchIn(SlipVerify.buildTrueMoney("TOPUP", "A1B2C3D4", "01012025")))
+        assertTrue(
+            Regex("9104[0-9a-f]{4}$").containsMatchIn(SlipVerify.buildTrueMoney("TOPUP", "A1B2C3D4", "01012025")),
+        )
         assertTrue(tm.startsWith("0048"))
         assertTrue(!tm.contains("5102TH"))
     }
@@ -187,8 +206,10 @@ class SlipVerifyTest {
 
     @Test
     fun `fixTruncatedCrc repairs a payment QR`() {
-        val full = (1..400).map { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", java.math.BigDecimal(it)) }
-            .first { it.takeLast(4).startsWith("0") }
+        val full =
+            (1..400)
+                .map { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", java.math.BigDecimal(it)) }
+                .first { it.takeLast(4).startsWith("0") }
         val shortened = full.dropLast(4) + full.takeLast(3)
         assertEquals(full, PromptParse.fixTruncatedCrc(shortened))
         assertNull(PromptParse.parse(shortened, strict = true), "parse itself never repairs")

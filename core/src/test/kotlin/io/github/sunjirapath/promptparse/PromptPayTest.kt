@@ -18,8 +18,15 @@ class PromptPayTest {
     @Test
     fun `every accepted MSISDN spelling gives the same payload`() {
         for (input in listOf(
-            "0812223333", "081-222-3333", "081 222 3333", " 0812223333".trim(), "+66812223333", "+66 81 222 3333",
-            "66812223333", "0066812223333", "0066-81-222-3333",
+            "0812223333",
+            "081-222-3333",
+            "081 222 3333",
+            " 0812223333".trim(),
+            "+66812223333",
+            "+66 81 222 3333",
+            "66812223333",
+            "0066812223333",
+            "0066-81-222-3333",
         )) {
             assertEquals(mobile, PromptPay.anyId(AnyIdType.MSISDN, input), input)
         }
@@ -28,9 +35,25 @@ class PromptPayTest {
     @Test
     fun `invalid MSISDNs are rejected with a clear message`() {
         for (input in listOf(
-            "", "0", "0812", "081222333", "08122233334", "1812223333", "abc", "08122x3333", "+0812223333",
-            "+660812223333", "+66812223333 ext", "+0066812223333", "6681222333", "668122233334",
-            "00668122233", "0066812223333 4", "++66812223333", "٠٨١٢٢٢٣٣٣٣", "081.222.3333",
+            "",
+            "0",
+            "0812",
+            "081222333",
+            "08122233334",
+            "1812223333",
+            "abc",
+            "08122x3333",
+            "+0812223333",
+            "+660812223333",
+            "+66812223333 ext",
+            "+0066812223333",
+            "6681222333",
+            "668122233334",
+            "00668122233",
+            "0066812223333 4",
+            "++66812223333",
+            "٠٨١٢٢٢٣٣٣٣",
+            "081.222.3333",
         )) {
             val e = assertFailsWith<IllegalArgumentException>(input) { PromptPay.anyId(AnyIdType.MSISDN, input) }
             assertTrue(e.message!!.startsWith("MSISDN must be"), e.message)
@@ -101,10 +124,14 @@ class PromptPayTest {
     @Test
     fun `amounts that are zero, negative, tiny or too large are rejected`() {
         for (a in listOf("0", "0.00", "-1", "-0.01", "0.004", "1E-999999999", "-1E+999999999", "0E+999999999")) {
-            assertFailsWith<IllegalArgumentException>(a) { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(a)) }
+            assertFailsWith<IllegalArgumentException>(
+                a,
+            ) { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(a)) }
         }
         for (a in listOf("10000000000", "1E+999999999", "9999999999.995", "99999999999.99")) {
-            assertFailsWith<IllegalArgumentException>(a) { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(a)) }
+            assertFailsWith<IllegalArgumentException>(
+                a,
+            ) { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(a)) }
         }
     }
 
@@ -140,12 +167,31 @@ class PromptPayTest {
         assertFailsWith<IllegalArgumentException> { PromptPay.billPayment("01122334455678", "R1") }
         assertFailsWith<IllegalArgumentException> { PromptPay.billPayment("011223344556x", "R1") }
         assertFailsWith<IllegalArgumentException> { PromptPay.billPayment("0112233445566", "") }
-        assertFailsWith<IllegalArgumentException> { PromptPay.billPayment("0112233445566", "R1", amount = BigDecimal.ZERO) }
+        assertFailsWith<IllegalArgumentException> {
+            PromptPay.billPayment(
+                "0112233445566",
+                "R1",
+                amount = BigDecimal.ZERO,
+            )
+        }
         // tag 30 would exceed 99 bytes; the message names the tag
-        val e = assertFailsWith<IllegalArgumentException> { PromptPay.billPayment("0112233445566", "R".repeat(60), "S".repeat(20)) }
+        val e =
+            assertFailsWith<IllegalArgumentException> {
+                PromptPay.billPayment(
+                    "0112233445566",
+                    "R".repeat(60),
+                    "S".repeat(20),
+                )
+            }
         assertTrue(e.message!!.contains("tag 30"), e.message)
         PromptPay.billPayment("0112233445566", "X", ref3 = "X".repeat(95)) // tag 62 is exactly 99 bytes
-        assertFailsWith<IllegalArgumentException> { PromptPay.billPayment("0112233445566", "R1", ref3 = "X".repeat(96)) }
+        assertFailsWith<IllegalArgumentException> {
+            PromptPay.billPayment(
+                "0112233445566",
+                "R1",
+                ref3 = "X".repeat(96),
+            )
+        }
     }
 
     @Test
@@ -189,13 +235,16 @@ class PromptPayTest {
         val ok = PromptPay.billPayment("0112233445566", "R1")
         assertNotNull(PromptPay.parseBillPayment(ok))
         val qr = PromptParse.parse(ok)!!
+
         fun withTag30(vararg sub: Tag) = qr.with("30", Tag.template("30", sub.toList()).value).encode()
 
         assertNull(PromptPay.parseBillPayment(withTag30(Tag("00", aidBill), Tag("01", "0112233445566"))))
         assertNull(PromptPay.parseBillPayment(withTag30(Tag("00", aidBill), Tag("01", "0112233445566"), Tag("02", ""))))
         assertNull(PromptPay.parseBillPayment(withTag30(Tag("00", aidBill), Tag("02", "R1"))))
         assertNull(PromptPay.parseBillPayment(withTag30(Tag("00", aidBill), Tag("01", ""), Tag("02", "R1"))))
-        assertNull(PromptPay.parseBillPayment(withTag30(Tag("00", aidAnyId), Tag("01", "0112233445566"), Tag("02", "R1"))))
+        assertNull(
+            PromptPay.parseBillPayment(withTag30(Tag("00", aidAnyId), Tag("01", "0112233445566"), Tag("02", "R1"))),
+        )
         assertNull(PromptPay.parseBillPayment(qr.with("00", "02").encode()))
         assertNull(PromptPay.parseBillPayment(qr.with("54", "x").encode()))
         assertNull(PromptPay.parseBillPayment(ok.dropLast(4) + "0000"))

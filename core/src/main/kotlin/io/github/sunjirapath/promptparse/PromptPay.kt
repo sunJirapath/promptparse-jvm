@@ -17,7 +17,6 @@ private const val AID_BILL_PAYMENT = "A000000677010112"
 
 /** Generates and reads Thai PromptPay QR payloads. */
 public object PromptPay {
-
     /**
      * PromptPay AnyID (tag 29) QR.
      *
@@ -34,11 +33,16 @@ public object PromptPay {
      */
     @JvmStatic
     @JvmOverloads
-    public fun anyId(type: AnyIdType, target: String, amount: BigDecimal? = null): String {
-        val account = Tag.template(
-            "29",
-            listOf(Tag("00", AID_ANY_ID), Tag(type.subTagId, normalizeTarget(type, target))),
-        )
+    public fun anyId(
+        type: AnyIdType,
+        target: String,
+        amount: BigDecimal? = null,
+    ): String {
+        val account =
+            Tag.template(
+                "29",
+                listOf(Tag("00", AID_ANY_ID), Tag(type.subTagId, normalizeTarget(type, target))),
+            )
         return merchantQr(account, amount, emptyList())
     }
 
@@ -102,7 +106,9 @@ public object PromptPay {
         return BillPaymentInfo(billerId, ref1, qr.value("30", "03"), qr.value("62", "07"), amount.value)
     }
 
-    internal class Amount(val value: BigDecimal?)
+    internal class Amount(
+        val value: BigDecimal?,
+    )
 
     /** `Amount(null)` when there is no tag 54, `null` when tag 54 is present but unreadable. */
     internal fun readAmount(qr: EmvcoQr): Amount? {
@@ -111,21 +117,29 @@ public object PromptPay {
     }
 
     /** Tags 00, 01, [account], 53, 58, [54], then [extra] (the order the reference's golden vectors use). */
-    internal fun merchantQr(account: Tag, amount: BigDecimal?, extra: List<Tag>): String {
-        val tags = mutableListOf(
-            Tag("00", "01"),
-            Tag("01", if (amount == null) "11" else "12"),
-            account,
-            Tag("53", "764"),
-            Tag("58", "TH"),
-        )
+    internal fun merchantQr(
+        account: Tag,
+        amount: BigDecimal?,
+        extra: List<Tag>,
+    ): String {
+        val tags =
+            mutableListOf(
+                Tag("00", "01"),
+                Tag("01", if (amount == null) "11" else "12"),
+                account,
+                Tag("53", "764"),
+                Tag("58", "TH"),
+            )
         // The reference puts 54 after 58, and its golden vectors depend on that order.
         if (amount != null) tags.add(Tag("54", Amounts.format(amount)))
         tags.addAll(extra)
         return EmvcoQr(tags).encode()
     }
 
-    private fun normalizeTarget(type: AnyIdType, target: String): String {
+    private fun normalizeTarget(
+        type: AnyIdType,
+        target: String,
+    ): String {
         val compact = target.filter { it != ' ' && it != '-' }
         return when (type) {
             AnyIdType.MSISDN -> normalizeMobile(compact)
@@ -134,7 +148,11 @@ public object PromptPay {
         }
     }
 
-    private fun digits(s: String, count: Int, name: String): String {
+    private fun digits(
+        s: String,
+        count: Int,
+        name: String,
+    ): String {
         require(s.length == count && s.all(Tlv::isDigit)) { "$name must be $count digits" }
         return s
     }
@@ -143,13 +161,14 @@ public object PromptPay {
     internal fun normalizeMobile(compact: String): String {
         val plus = compact.startsWith("+")
         val s = if (plus) compact.substring(1) else compact
-        val national = when {
-            !s.all(Tlv::isDigit) -> null
-            !plus && s.length == 10 && s.startsWith("0") -> s.substring(1)
-            s.length == MSISDN_INTERNATIONAL_LENGTH && s.startsWith("66") -> s.substring(2)
-            !plus && s.length == MSISDN_WIRE_LENGTH && s.startsWith("0066") -> s.substring(4)
-            else -> null
-        }
+        val national =
+            when {
+                !s.all(Tlv::isDigit) -> null
+                !plus && s.length == 10 && s.startsWith("0") -> s.substring(1)
+                s.length == MSISDN_INTERNATIONAL_LENGTH && s.startsWith("66") -> s.substring(2)
+                !plus && s.length == MSISDN_WIRE_LENGTH && s.startsWith("0066") -> s.substring(4)
+                else -> null
+            }
         requireNotNull(national) {
             "MSISDN must be a Thai mobile number such as " +
                 "0812345678, 081-234-5678, +66812345678, 66812345678 or 0066812345678"

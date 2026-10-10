@@ -13,7 +13,6 @@ internal const val MAX_VALUE_LENGTH: Int = 99
  * reference's non-ASCII vector declares. For ASCII text it is identical to `String.length`.
  */
 internal object Tlv {
-
     /** Mirrors the reference's `^\d{4}.+`: 4 ASCII digits followed by at least one non-line-terminator. */
     fun looksLikeTlv(s: String): Boolean {
         if (s.length < 5) return false
@@ -34,13 +33,15 @@ internal object Tlv {
 
     fun isDigit(c: Char): Boolean = c in '0'..'9'
 
-    private fun isLineTerminator(c: Char): Boolean =
-        c == '\n' || c == '\r' || c == '\u2028' || c == '\u2029'
+    private fun isLineTerminator(c: Char): Boolean = c == '\n' || c == '\r' || c == '\u2028' || c == '\u2029'
 
     fun isTagId(id: String): Boolean = id.length == 2 && isDigit(id[0]) && isDigit(id[1])
 
     /** UTF-8 size of the code point starting at [i]. A lone surrogate counts as U+FFFD (3 bytes), like the reference. */
-    private fun utf8Size(s: String, i: Int): Int {
+    private fun utf8Size(
+        s: String,
+        i: Int,
+    ): Int {
         val c = s[i]
         return when {
             c.code < 0x80 -> 1
@@ -68,19 +69,27 @@ internal object Tlv {
         while (i < s.length) {
             val size = utf8Size(s, i)
             var cp = s[i].code
-            if (size == 4) cp = Character.toCodePoint(s[i], s[i + 1])
-            else if (s[i].isSurrogate()) cp = 0xFFFD
+            if (size == 4) {
+                cp = Character.toCodePoint(s[i], s[i + 1])
+            } else if (s[i].isSurrogate()) {
+                cp = 0xFFFD
+            }
             when (size) {
-                1 -> out[o++] = cp.toByte()
+                1 -> {
+                    out[o++] = cp.toByte()
+                }
+
                 2 -> {
                     out[o++] = (0xC0 or (cp shr 6)).toByte()
                     out[o++] = (0x80 or (cp and 0x3F)).toByte()
                 }
+
                 3 -> {
                     out[o++] = (0xE0 or (cp shr 12)).toByte()
                     out[o++] = (0x80 or ((cp shr 6) and 0x3F)).toByte()
                     out[o++] = (0x80 or (cp and 0x3F)).toByte()
                 }
+
                 else -> {
                     out[o++] = (0xF0 or (cp shr 18)).toByte()
                     out[o++] = (0x80 or ((cp shr 12) and 0x3F)).toByte()
@@ -94,7 +103,11 @@ internal object Tlv {
     }
 
     /** Index just past [byteLen] UTF-8 bytes of [s] starting at [from], or -1 if that runs past the end or splits a character. */
-    private fun advance(s: String, from: Int, byteLen: Int): Int {
+    private fun advance(
+        s: String,
+        from: Int,
+        byteLen: Int,
+    ): Int {
         var i = from
         var consumed = 0
         while (consumed < byteLen) {
@@ -125,7 +138,10 @@ internal object Tlv {
      * truncated / ends inside a multi-byte character. [strict] turns that into `null`; otherwise
      * decoding stops there and the tags read so far are returned.
      */
-    fun decode(payload: String, strict: Boolean): List<Tag>? {
+    fun decode(
+        payload: String,
+        strict: Boolean,
+    ): List<Tag>? {
         val tags = ArrayList<Tag>()
         var idx = 0
         while (idx < payload.length) {
@@ -137,7 +153,11 @@ internal object Tlv {
     }
 
     /** Reads one tag at [idx] into [out] and returns the index after it, or -1 if malformed. */
-    private fun readTag(s: String, idx: Int, out: MutableList<Tag>): Int {
+    private fun readTag(
+        s: String,
+        idx: Int,
+        out: MutableList<Tag>,
+    ): Int {
         if (idx + 4 > s.length) return -1
         if ((0 until 4).any { !isDigit(s[idx + it]) }) return -1
         val len = (s[idx + 2] - '0') * 10 + (s[idx + 3] - '0')
@@ -177,7 +197,10 @@ internal object Tlv {
     }
 
     /** [given] equals the uppercase [expected] hex, ignoring ASCII case in [given]. */
-    private fun hexEquals(given: String, expected: String): Boolean {
+    private fun hexEquals(
+        given: String,
+        expected: String,
+    ): Boolean {
         if (given.length != expected.length) return false
         for (i in given.indices) {
             val g = given[i]
@@ -187,7 +210,11 @@ internal object Tlv {
     }
 
     /** A payload split at its trailing CRC tag. [body] is everything before the tag; [repaired] is the payload with a full 4-digit CRC. */
-    class CrcSplit(val body: String, val repaired: String, val truncated: Boolean)
+    class CrcSplit(
+        val body: String,
+        val repaired: String,
+        val truncated: Boolean,
+    )
 
     /**
      * Finds the CRC tag [tagId] at the very end of [payload] and checks its checksum.
@@ -196,7 +223,11 @@ internal object Tlv {
      * `0` and accepted if it then matches. Candidates are tried by position from the end, so a CRC whose
      * own digits spell the tag header (e.g. `9104` + `9104`) is still found.
      */
-    fun splitCrc(payload: String, tagId: String, autoFix: Boolean): CrcSplit? {
+    fun splitCrc(
+        payload: String,
+        tagId: String,
+        autoFix: Boolean,
+    ): CrcSplit? {
         val header = tagId + "04"
         for (tail in 4 downTo (if (autoFix) 1 else 4)) {
             val start = payload.length - tail - header.length

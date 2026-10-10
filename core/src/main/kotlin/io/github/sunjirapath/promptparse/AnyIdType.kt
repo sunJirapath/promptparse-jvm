@@ -1,7 +1,9 @@
 package io.github.sunjirapath.promptparse
 
 /** Kind of recipient identifier in a PromptPay AnyID (tag 29) QR. */
-public enum class AnyIdType(internal val subTagId: String) {
+public enum class AnyIdType(
+    internal val subTagId: String,
+) {
     /** Thai mobile number. */
     MSISDN("01"),
 

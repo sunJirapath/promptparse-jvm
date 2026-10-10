@@ -14,7 +14,6 @@ private const val WIRE_LENGTH = 15
  * shown only inside the TrueMoney app; other apps ignore it.
  */
 public object TrueMoney {
-
     /**
      * @param mobile Thai mobile number in any form [PromptPay.anyId] accepts for `MSISDN`.
      * @param amount `null` for a static QR; otherwise above 0, rounded `HALF_UP` to 2 decimals.
@@ -23,12 +22,17 @@ public object TrueMoney {
      */
     @JvmStatic
     @JvmOverloads
-    public fun build(mobile: String, amount: BigDecimal? = null, message: String? = null): String {
+    public fun build(
+        mobile: String,
+        amount: BigDecimal? = null,
+        message: String? = null,
+    ): String {
         val local = "0" + PromptPay.normalizeMobile(mobile.filter { it != ' ' && it != '-' }).substring(4)
-        val account = Tag.template(
-            "29",
-            listOf(Tag("00", AID_ANY_ID), Tag("03", TRUEMONEY_PREFIX + local.padStart(MOBILE_PAD, '0'))),
-        )
+        val account =
+            Tag.template(
+                "29",
+                listOf(Tag("00", AID_ANY_ID), Tag("03", TRUEMONEY_PREFIX + local.padStart(MOBILE_PAD, '0'))),
+            )
         val extra = if (message.isNullOrEmpty()) emptyList() else listOf(Tag("81", encodeMessage(message)))
         return PromptPay.merchantQr(account, amount, extra)
     }
@@ -51,7 +55,14 @@ public object TrueMoney {
 
     private fun encodeMessage(message: String): String {
         val sb = StringBuilder(message.length * 4)
-        for (c in message) sb.append(c.code.toString(16).uppercase().padStart(4, '0'))
+        for (c in message) {
+            sb.append(
+                c.code
+                    .toString(16)
+                    .uppercase()
+                    .padStart(4, '0'),
+            )
+        }
         return sb.toString()
     }
 

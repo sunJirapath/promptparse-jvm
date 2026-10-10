@@ -11,7 +11,6 @@ private const val MAX_AMOUNT_INTEGER_DIGITS = 10
 private const val ROUNDS_TO_ZERO_MAGNITUDE = -3
 
 internal object Amounts {
-
     /**
      * Amount as written in tag 54: 2 decimals, `HALF_UP`.
      *
@@ -37,7 +36,11 @@ internal object Amounts {
         if (text.isEmpty()) return null
         var dots = 0
         for (c in text) {
-            if (c == '.') dots++ else if (!Tlv.isDigit(c)) return null
+            if (c == '.') {
+                dots++
+            } else if (!Tlv.isDigit(c)) {
+                return null
+            }
         }
         if (dots > 1 || text.startsWith('.') || text.endsWith('.')) return null
         return BigDecimal(text)

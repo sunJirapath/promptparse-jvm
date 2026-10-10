@@ -2,7 +2,6 @@ package io.github.sunjirapath.promptparse
 
 /** Entry point for parsing and checking EMVCo-style QR payloads. */
 public object PromptParse {
-
     /**
      * Parses any EMVCo-compatible QR payload.
      *
@@ -21,15 +20,20 @@ public object PromptParse {
      */
     @JvmStatic
     @JvmOverloads
-    public fun parse(payload: String, strict: Boolean = false, subTags: Boolean = true): EmvcoQr? {
+    public fun parse(
+        payload: String,
+        strict: Boolean = false,
+        subTags: Boolean = true,
+    ): EmvcoQr? {
         val text = if (strict) Tlv.trimScan(payload) else Tlv.trimScanLenient(payload)
         if (!Tlv.looksLikeTlv(text)) return null
         if (strict && !Tlv.crcMatches(text)) return null
         val decoded = Tlv.decode(text, strict) ?: return null
         if (decoded.isEmpty()) return null
-        val tags = decoded.filter { it.id != CRC_TAG_ID }.map {
-            if (subTags) Tag.of(it.id, it.value) else it
-        }
+        val tags =
+            decoded.filter { it.id != CRC_TAG_ID }.map {
+                if (subTags) Tag.of(it.id, it.value) else it
+            }
         return EmvcoQr(tags)
     }
 

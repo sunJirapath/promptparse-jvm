@@ -11,7 +11,6 @@ import kotlin.test.assertTrue
 
 /** Vectors from promptparse (`index.test.ts:67-87,102-120,150-176`) and thai-qr-payment (MIT); see NOTICE. */
 class TrueMoneyAndBarcodeTest {
-
     // --- TrueMoney QR -----------------------------------------------------------------------
 
     @Test
@@ -40,7 +39,10 @@ class TrueMoneyAndBarcodeTest {
     fun `TrueMoney QR reads back`() {
         val payload = TrueMoney.build("0801111111", BigDecimal("10.05"), "สวัสดี 😀")
         assertEquals(TrueMoneyInfo("0801111111", BigDecimal("10.05"), "สวัสดี 😀"), TrueMoney.parse(payload))
-        assertEquals(TrueMoneyInfo("0801111111", null, null), TrueMoney.parse(TrueMoney.build("0801111111", message = "")))
+        assertEquals(
+            TrueMoneyInfo("0801111111", null, null),
+            TrueMoney.parse(TrueMoney.build("0801111111", message = "")),
+        )
     }
 
     @Test
@@ -87,7 +89,9 @@ class TrueMoneyAndBarcodeTest {
         assertEquals("100", amount("1"))
         assertEquals("999999999999", amount("9999999999.99"))
         for (bad in listOf("0", "-1", "0.004", "10000000000")) {
-            assertFailsWith<IllegalArgumentException>(bad) { BotBarcode.build("099400016550100", "R", null, BigDecimal(bad)) }
+            assertFailsWith<IllegalArgumentException>(
+                bad,
+            ) { BotBarcode.build("099400016550100", "R", null, BigDecimal(bad)) }
         }
     }
 
@@ -119,9 +123,18 @@ class TrueMoneyAndBarcodeTest {
     @Test
     fun `barcode parse rejects malformed input`() {
         for (bad in listOf(
-            "", "|", "099999999999990\r111\r\r0", "|099999999999990\r111\r\r", "|099999999999990\r111\r0",
-            "|099999999999990\r111\r\r0\r", "|0999\r111\r\r0", "|099999999999990\r\r\r0", "|099999999999990\r111\r\r12.5",
-            "|099999999999990\r111\r\r-5", "|099999999999990\r111\r\r1234567890123", "|099999999999990\r111\r\r٣",
+            "",
+            "|",
+            "099999999999990\r111\r\r0",
+            "|099999999999990\r111\r\r",
+            "|099999999999990\r111\r0",
+            "|099999999999990\r111\r\r0\r",
+            "|0999\r111\r\r0",
+            "|099999999999990\r\r\r0",
+            "|099999999999990\r111\r\r12.5",
+            "|099999999999990\r111\r\r-5",
+            "|099999999999990\r111\r\r1234567890123",
+            "|099999999999990\r111\r\r٣",
             "00020101021230650016A00000067701011201150994000165501000212123456789012030667042953037645802TH54073649.2263044534",
             "|099400016550100\r123456789012\r670429",
         )) {
@@ -139,7 +152,10 @@ class TrueMoneyAndBarcodeTest {
             "00020101021230650016A00000067701011201150994000165501000212123456789012030667042953037645802TH54073649.2263044534",
             BotBarcode.parse("|099400016550100\r123456789012\r670429\r364922")!!.toBillPayment(),
         )
-        assertTrue(PromptPay.parseBillPayment(BotBarcode.parse("|099400016550100\rR\rS\r100")!!.toBillPayment())!!.amount == BigDecimal("1.00"))
+        assertTrue(
+            PromptPay.parseBillPayment(BotBarcode.parse("|099400016550100\rR\rS\r100")!!.toBillPayment())!!.amount ==
+                BigDecimal("1.00"),
+        )
         assertFailsWith<IllegalArgumentException> { BotBarcode.parse("|09940001655010000\rR\r\r0")!!.toBillPayment() }
     }
 }

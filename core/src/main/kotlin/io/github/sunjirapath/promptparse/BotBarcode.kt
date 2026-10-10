@@ -11,7 +11,6 @@ private const val MAX_SATANG_DIGITS = 12 // 9,999,999,999.99 baht
  * (`0` when the cashier keys it in). It is not TLV and has no checksum.
  */
 public object BotBarcode {
-
     /**
      * @param billerId up to 15 digits (tax ID + suffix); shorter values are left-padded with zeros.
      * @param ref1 required customer / invoice reference.
@@ -21,7 +20,12 @@ public object BotBarcode {
      */
     @JvmStatic
     @JvmOverloads
-    public fun build(billerId: String, ref1: String, ref2: String? = null, amount: BigDecimal? = null): String {
+    public fun build(
+        billerId: String,
+        ref1: String,
+        ref2: String? = null,
+        amount: BigDecimal? = null,
+    ): String {
         require(billerId.isNotEmpty() && billerId.length <= BILLER_ID_LENGTH && billerId.all(Tlv::isDigit)) {
             "billerId must be 1 to $BILLER_ID_LENGTH digits"
         }

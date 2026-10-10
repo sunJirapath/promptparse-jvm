@@ -44,7 +44,9 @@ class CrcTest {
     @Test
     fun `swapping or dropping characters is detected`() {
         assertFalse(PromptParse.validateCrc(valid.removeRange(10, 11)))
-        assertFalse(PromptParse.validateCrc(valid.substring(0, 20) + valid.substring(21, 22) + valid[20] + valid.substring(22)))
+        assertFalse(
+            PromptParse.validateCrc(valid.substring(0, 20) + valid.substring(21, 22) + valid[20] + valid.substring(22)),
+        )
     }
 
     @Test

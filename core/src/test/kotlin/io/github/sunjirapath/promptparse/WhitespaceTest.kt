@@ -1,11 +1,11 @@
 package io.github.sunjirapath.promptparse
 
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
 
 /** Scanners often append a newline (or CRLF) and copy-paste adds spaces: every parser ignores them. */
 class WhitespaceTest {
@@ -36,8 +36,10 @@ class WhitespaceTest {
         val short = full.dropLast(4) + "539"
         assertEquals("T00000086", SlipVerify.parse(ws + short + ws)!!.transRef)
         assertNull(SlipVerify.parse(ws + short + ws, crcAutoFix = false))
-        val payment = (1..400).map { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(it)) }
-            .first { it.takeLast(4).startsWith("0") }
+        val payment =
+            (1..400)
+                .map { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(it)) }
+                .first { it.takeLast(4).startsWith("0") }
         assertEquals(payment, PromptParse.fixTruncatedCrc(ws + payment.dropLast(4) + payment.takeLast(3) + ws))
     }
 

@@ -93,7 +93,8 @@ class ParseModesTest {
 
     @Test
     fun `values that only look like TLV do not get sub-tags`() {
-        fun subTagsOf(value: String): List<Tag> = PromptParse.parse("59%02d%s".format(value.length, value))!!.tag("59")!!.subTags
+        fun subTagsOf(value: String): List<Tag> =
+            PromptParse.parse("59%02d%s".format(value.length, value))!!.tag("59")!!.subTags
 
         assertTrue(subTagsOf("1234 Shop").isEmpty()) // 12 / len 34 runs past the end
         assertTrue(subTagsOf("01000202xy").isEmpty()) // empty sub-tag 01

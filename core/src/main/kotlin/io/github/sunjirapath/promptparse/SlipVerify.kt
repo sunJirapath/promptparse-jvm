@@ -16,7 +16,6 @@ private const val TRUEMONEY_MARKER = "01"
  * (1-3 hex digits left); pass `crcAutoFix = false` to refuse that. Builders never shorten the CRC.
  */
 public object SlipVerify {
-
     /**
      * Standard slip verify QR.
      *
@@ -25,7 +24,10 @@ public object SlipVerify {
      * @throws IllegalArgumentException if [sendingBank] is not 3 digits, [transRef] is empty, or a field is too long.
      */
     @JvmStatic
-    public fun build(sendingBank: String, transRef: String): String {
+    public fun build(
+        sendingBank: String,
+        transRef: String,
+    ): String {
         require(sendingBank.length == 3 && sendingBank.all(Tlv::isDigit)) { "sendingBank must be a 3-digit bank code" }
         require(transRef.isNotEmpty()) { "transRef must not be empty" }
         val root = Tag.template("00", listOf(Tag("00", SLIP_API_TYPE), Tag("01", sendingBank), Tag("02", transRef)))
@@ -39,7 +41,10 @@ public object SlipVerify {
      */
     @JvmStatic
     @JvmOverloads
-    public fun parse(payload: String, crcAutoFix: Boolean = true): SlipVerifyInfo? {
+    public fun parse(
+        payload: String,
+        crcAutoFix: Boolean = true,
+    ): SlipVerifyInfo? {
         val sub = rootFields(payload, crcAutoFix) ?: return null
         if (sub["00"] != SLIP_API_TYPE) return null
         val bank = sub["01"]?.takeIf { it.isNotEmpty() } ?: return null
@@ -54,17 +59,25 @@ public object SlipVerify {
      * @throws IllegalArgumentException if [eventType] or [transactionId] is empty, [date] is malformed, or a field is too long.
      */
     @JvmStatic
-    public fun buildTrueMoney(eventType: String, transactionId: String, date: String): String {
+    public fun buildTrueMoney(
+        eventType: String,
+        transactionId: String,
+        date: String,
+    ): String {
         require(eventType.isNotEmpty()) { "eventType must not be empty" }
         require(transactionId.isNotEmpty()) { "transactionId must not be empty" }
         require(date.length == 8 && date.all(Tlv::isDigit)) { "date must be 8 digits (DDMMYYYY)" }
-        val root = Tag.template(
-            "00",
-            listOf(
-                Tag("00", TRUEMONEY_MARKER), Tag("01", TRUEMONEY_MARKER),
-                Tag("02", eventType), Tag("03", transactionId), Tag("04", date),
-            ),
-        )
+        val root =
+            Tag.template(
+                "00",
+                listOf(
+                    Tag("00", TRUEMONEY_MARKER),
+                    Tag("01", TRUEMONEY_MARKER),
+                    Tag("02", eventType),
+                    Tag("03", transactionId),
+                    Tag("04", date),
+                ),
+            )
         return withCrc(Tlv.encode(listOf(root)), uppercase = false)
     }
 
@@ -74,7 +87,10 @@ public object SlipVerify {
      */
     @JvmStatic
     @JvmOverloads
-    public fun parseTrueMoney(payload: String, crcAutoFix: Boolean = true): TrueMoneySlipVerifyInfo? {
+    public fun parseTrueMoney(
+        payload: String,
+        crcAutoFix: Boolean = true,
+    ): TrueMoneySlipVerifyInfo? {
         val sub = rootFields(payload, crcAutoFix) ?: return null
         if (sub["00"] != TRUEMONEY_MARKER || sub["01"] != TRUEMONEY_MARKER) return null
         val eventType = sub["02"]?.takeIf { it.isNotEmpty() } ?: return null
@@ -83,14 +99,20 @@ public object SlipVerify {
         return TrueMoneySlipVerifyInfo(eventType, transactionId, date)
     }
 
-    private fun withCrc(body: String, uppercase: Boolean): String {
+    private fun withCrc(
+        body: String,
+        uppercase: Boolean,
+    ): String {
         val seed = body + SLIP_CRC_TAG + "04"
         val crc = Tlv.checksum(seed)
         return seed + if (uppercase) crc else crc.lowercase()
     }
 
     /** First value per sub-tag id of root tag `00`, after checking the CRC and that the whole body is well-formed TLV. */
-    private fun rootFields(payload: String, crcAutoFix: Boolean): Map<String, String>? {
+    private fun rootFields(
+        payload: String,
+        crcAutoFix: Boolean,
+    ): Map<String, String>? {
         val body = Tlv.splitCrc(Tlv.trimScan(payload), SLIP_CRC_TAG, crcAutoFix)?.body ?: return null
         val root = Tlv.decode(body, strict = true)?.firstOrNull { it.id == "00" } ?: return null
         val subTags = Tlv.decode(root.value, strict = true) ?: return null
