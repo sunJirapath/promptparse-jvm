@@ -8,7 +8,8 @@ junit = "5.14.4"
 jqwik = "1.10.2"
 spotless = "8.10.4"
 ktlint = "1.8.0"
-googleJavaFormat = "1.37.0"
+# 1.37.0 (2026-10-01) fails on JDK 21 with an InvocationTargetException; 1.36.1 is the newest that works.
+googleJavaFormat = "1.36.1"
 # Newest stable detekt (Feb 2025). 2.0.0 is still alpha. It targets Kotlin 2.0 but analyses our sources fine.
 detekt = "1.23.8"
 dokka = "2.2.0"
