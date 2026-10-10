@@ -4,6 +4,10 @@ import java.math.BigDecimal
 
 private const val TRUEMONEY_PREFIX = "14"
 
+/** Mobile numbers are zero-padded to this width after the prefix; prefix + number is [WIRE_LENGTH]. */
+private const val MOBILE_PAD = 13
+private const val WIRE_LENGTH = 15
+
 /**
  * TrueMoney Wallet payment QR. It is a PromptPay AnyID (tag 29) QR whose e-wallet sub-tag 03 is `14` plus the
  * mobile number left-padded with zeros to 13 digits. The optional personal message travels in tag 81 and is
@@ -23,7 +27,7 @@ public object TrueMoney {
         val local = "0" + PromptPay.normalizeMobile(mobile.filter { it != ' ' && it != '-' }).substring(4)
         val account = Tag.template(
             "29",
-            listOf(Tag("00", AID_ANY_ID), Tag("03", TRUEMONEY_PREFIX + local.padStart(13, '0'))),
+            listOf(Tag("00", AID_ANY_ID), Tag("03", TRUEMONEY_PREFIX + local.padStart(MOBILE_PAD, '0'))),
         )
         val extra = if (message.isNullOrEmpty()) emptyList() else listOf(Tag("81", encodeMessage(message)))
         return PromptPay.merchantQr(account, amount, extra)
@@ -39,7 +43,7 @@ public object TrueMoney {
         val qr = PromptParse.parse(payload, strict = true) ?: return null
         if (qr.value("00") != "01" || qr.value("29", "00") != AID_ANY_ID) return null
         val wire = qr.value("29", "03") ?: return null
-        if (wire.length != 15 || !wire.startsWith(TRUEMONEY_PREFIX) || !wire.all(Tlv::isDigit)) return null
+        if (wire.length != WIRE_LENGTH || !wire.startsWith(TRUEMONEY_PREFIX) || !wire.all(Tlv::isDigit)) return null
         val amount = PromptPay.readAmount(qr) ?: return null
         val mobile = "0" + wire.substring(TRUEMONEY_PREFIX.length).trimStart('0')
         return TrueMoneyInfo(mobile, amount.value, qr.value("81")?.let(::decodeMessage))

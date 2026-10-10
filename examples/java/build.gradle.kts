@@ -17,7 +17,7 @@ dependencies {
 }
 
 // The example asserts its own output, so running it as part of `check` proves Java interop.
-val runExample by tasks.registering(JavaExec::class) {
+val runExample = tasks.register<JavaExec>("runExample") {
     group = "verification"
     description = "Runs the Java example; fails the build if any assertion in it fails."
     classpath = sourceSets.main.get().runtimeClasspath

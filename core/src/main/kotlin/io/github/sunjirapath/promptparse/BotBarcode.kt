@@ -41,12 +41,15 @@ public object BotBarcode {
         if (!text.startsWith("|")) return null
         val parts = text.substring(1).split('\r')
         if (parts.size != 4) return null
-        val (billerId, ref1, ref2, amountField) = parts
+        val billerId = parts[0]
+        val ref1 = parts[1]
+        val amountField = parts[3]
         if (billerId.length < BILLER_ID_LENGTH || ref1.isEmpty()) return null
-        if (amountField.isEmpty() || amountField.length > MAX_SATANG_DIGITS || !amountField.all(Tlv::isDigit)) return null
+        val validAmount = amountField.length in 1..MAX_SATANG_DIGITS && amountField.all(Tlv::isDigit)
+        if (!validAmount) return null
         val satang = BigInteger(amountField)
         val amount = if (satang.signum() == 0) null else BigDecimal(satang, 2)
-        return BotBarcodeInfo(billerId, ref1, ref2.ifEmpty { null }, amount)
+        return BotBarcodeInfo(billerId, ref1, parts[2].ifEmpty { null }, amount)
     }
 }
 

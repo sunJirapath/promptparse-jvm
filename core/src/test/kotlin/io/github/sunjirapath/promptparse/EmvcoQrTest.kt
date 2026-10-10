@@ -100,7 +100,7 @@ class EmvcoQrTest {
         assertNotEquals(template, Tag("29", template.value)) // same text, but no sub-tags
         assertNotEquals(Tag("29", "x"), Tag("29", "y"))
         assertNotEquals(Tag("29", "x"), Tag("30", "x"))
-        assertFalse(template.equals(null))
+        assertNotEquals<Any?>(template, null)
         assertSame(template, template.also { assertTrue(it == template) })
         assertEquals("Tag(id=01, value=11)", Tag("01", "11").toString())
         assertTrue(template.toString().startsWith("Tag(id=29, subTags=["))

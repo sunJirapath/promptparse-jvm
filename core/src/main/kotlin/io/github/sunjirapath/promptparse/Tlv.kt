@@ -139,7 +139,7 @@ internal object Tlv {
     /** Reads one tag at [idx] into [out] and returns the index after it, or -1 if malformed. */
     private fun readTag(s: String, idx: Int, out: MutableList<Tag>): Int {
         if (idx + 4 > s.length) return -1
-        if (!isDigit(s[idx]) || !isDigit(s[idx + 1]) || !isDigit(s[idx + 2]) || !isDigit(s[idx + 3])) return -1
+        if ((0 until 4).any { !isDigit(s[idx + it]) }) return -1
         val len = (s[idx + 2] - '0') * 10 + (s[idx + 3] - '0')
         val end = advance(s, idx + 4, len)
         if (end < 0) return -1

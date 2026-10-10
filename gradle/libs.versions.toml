@@ -6,6 +6,12 @@ mavenPublish = "0.37.0"
 # jqwik 1.10.x is built against JUnit Platform 1.14.x, so stay on the matching Jupiter 5.14.x line.
 junit = "5.14.4"
 jqwik = "1.10.2"
+spotless = "8.10.4"
+ktlint = "1.8.0"
+googleJavaFormat = "1.37.0"
+# Newest stable detekt (Feb 2025). 2.0.0 is still alpha. It targets Kotlin 2.0 but analyses our sources fine.
+detekt = "1.23.8"
+dokka = "2.2.0"
 
 [libraries]
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -19,3 +25,6 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

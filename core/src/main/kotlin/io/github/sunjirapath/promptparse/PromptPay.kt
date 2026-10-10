@@ -2,6 +2,16 @@ package io.github.sunjirapath.promptparse
 
 import java.math.BigDecimal
 
+private const val NATID_LENGTH = 13
+private const val EWALLET_LENGTH = 15
+private const val BILLER_ID_SHORT = 13
+private const val BILLER_ID_LONG = 15
+
+/** `0066` + 9 digits. */
+private const val MSISDN_WIRE_LENGTH = 13
+
+/** `66` + 9 digits. */
+private const val MSISDN_INTERNATIONAL_LENGTH = 11
 internal const val AID_ANY_ID = "A000000677010111"
 private const val AID_BILL_PAYMENT = "A000000677010112"
 
@@ -49,7 +59,8 @@ public object PromptPay {
         amount: BigDecimal? = null,
         ref3: String? = null,
     ): String {
-        require((billerId.length == 13 || billerId.length == 15) && billerId.all(Tlv::isDigit)) {
+        val billerIdOk = billerId.length in setOf(BILLER_ID_SHORT, BILLER_ID_LONG) && billerId.all(Tlv::isDigit)
+        require(billerIdOk) {
             "billerId must be 13 or 15 digits"
         }
         require(ref1.isNotEmpty()) { "ref1 must not be empty" }
@@ -70,7 +81,7 @@ public object PromptPay {
         if (qr.value("00") != "01" || qr.value("29", "00") != AID_ANY_ID) return null
         val type = AnyIdType.entries.firstOrNull { qr.tag("29", it.subTagId) != null } ?: return null
         var target = qr.value("29", type.subTagId)!!
-        if (type == AnyIdType.MSISDN && target.length == 13 && target.startsWith("0066")) {
+        if (type == AnyIdType.MSISDN && target.length == MSISDN_WIRE_LENGTH && target.startsWith("0066")) {
             target = "0" + target.substring(4)
         }
         val amount = readAmount(qr) ?: return null
@@ -118,8 +129,8 @@ public object PromptPay {
         val compact = target.filter { it != ' ' && it != '-' }
         return when (type) {
             AnyIdType.MSISDN -> normalizeMobile(compact)
-            AnyIdType.NATID -> digits(compact, 13, "NATID")
-            AnyIdType.EWALLETID -> digits(compact, 15, "EWALLETID")
+            AnyIdType.NATID -> digits(compact, NATID_LENGTH, "NATID")
+            AnyIdType.EWALLETID -> digits(compact, EWALLET_LENGTH, "EWALLETID")
         }
     }
 
@@ -135,12 +146,13 @@ public object PromptPay {
         val national = when {
             !s.all(Tlv::isDigit) -> null
             !plus && s.length == 10 && s.startsWith("0") -> s.substring(1)
-            s.length == 11 && s.startsWith("66") -> s.substring(2)
-            !plus && s.length == 13 && s.startsWith("0066") -> s.substring(4)
+            s.length == MSISDN_INTERNATIONAL_LENGTH && s.startsWith("66") -> s.substring(2)
+            !plus && s.length == MSISDN_WIRE_LENGTH && s.startsWith("0066") -> s.substring(4)
             else -> null
         }
         requireNotNull(national) {
-            "MSISDN must be a Thai mobile number such as 0812345678, 081-234-5678, +66812345678, 66812345678 or 0066812345678"
+            "MSISDN must be a Thai mobile number such as " +
+                "0812345678, 081-234-5678, +66812345678, 66812345678 or 0066812345678"
         }
         return "0066$national"
     }

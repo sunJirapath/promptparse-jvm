@@ -7,6 +7,9 @@ import java.math.RoundingMode
 private const val MAX_AMOUNT_LENGTH = 13
 private const val MAX_AMOUNT_INTEGER_DIGITS = 10
 
+/** Below 10^-3 (magnitude -3 and under) an amount rounds to 0.00 at 2 decimals. */
+private const val ROUNDS_TO_ZERO_MAGNITUDE = -3
+
 internal object Amounts {
 
     /**
@@ -21,7 +24,7 @@ internal object Amounts {
         require(magnitude <= MAX_AMOUNT_INTEGER_DIGITS) {
             "amount must have at most $MAX_AMOUNT_INTEGER_DIGITS integer digits"
         }
-        require(magnitude > -3) { "amount must be greater than 0 after rounding to 2 decimals" }
+        require(magnitude > ROUNDS_TO_ZERO_MAGNITUDE) { "amount must be greater than 0 after rounding to 2 decimals" }
         val rounded = amount.setScale(2, RoundingMode.HALF_UP)
         require(rounded.signum() > 0) { "amount must be greater than 0 after rounding to 2 decimals" }
         val text = rounded.toPlainString()

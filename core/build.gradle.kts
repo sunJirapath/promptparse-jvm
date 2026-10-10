@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kover)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.detekt)
 }
 
 kotlin {
@@ -13,6 +14,11 @@ kotlin {
         jvmTarget = JvmTarget.JVM_11
         allWarningsAsErrors = true
     }
+}
+
+// Fail at compile time on APIs newer than JDK 11, even though the build runs on a newer JDK.
+tasks.compileKotlin {
+    compilerOptions.freeCompilerArgs.add("-Xjdk-release=11")
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -29,6 +35,12 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    source.setFrom("src/main/kotlin", "src/test/kotlin")
 }
 
 kover {
