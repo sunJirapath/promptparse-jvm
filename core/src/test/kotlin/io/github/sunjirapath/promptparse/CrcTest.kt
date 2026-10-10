@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

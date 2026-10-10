@@ -3,6 +3,10 @@ Copyright 2026 sunJirapath
 
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
 
+Third-party notices (both MIT, reproduced in full below):
+  1. promptparse         - Copyright (c) 2023 Maythiwat Chomchuen
+  2. thai-qr-payment     - Copyright (c) 2026 uunw
+
 This product is a Kotlin/JVM port of "promptparse" (https://github.com/maythiwat/promptparse),
 and includes behavior, tag identifiers and test vectors derived from it. promptparse is
 distributed under the MIT License, reproduced here as required:

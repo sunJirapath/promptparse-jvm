@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 private const val SLIP_CRC_TAG = "91"
 private const val SLIP_API_TYPE = "000001"
@@ -12,7 +12,7 @@ private const val TRUEMONEY_MARKER = "01"
  * - standard (Bank of Thailand): `00{00=000001, 01=sending bank, 02=transaction ref}`, `51=TH`, CRC uppercase;
  * - TrueMoney: `00{00=01, 01=01, 02=event type, 03=transaction id, 04=DDMMYYYY}`, CRC lowercase.
  *
- * Parsers never throw. By default they repair a CRC that a bank app shortened by dropping leading zeros
+ * Parsers never throw and ignore surrounding whitespace. By default they repair a CRC that a bank app shortened by dropping leading zeros
  * (1-3 hex digits left); pass `crcAutoFix = false` to refuse that. Builders never shorten the CRC.
  */
 public object SlipVerify {
@@ -91,7 +91,7 @@ public object SlipVerify {
 
     /** First value per sub-tag id of root tag `00`, after checking the CRC and that the whole body is well-formed TLV. */
     private fun rootFields(payload: String, crcAutoFix: Boolean): Map<String, String>? {
-        val body = Tlv.splitCrc(payload, SLIP_CRC_TAG, crcAutoFix)?.body ?: return null
+        val body = Tlv.splitCrc(Tlv.trimScan(payload), SLIP_CRC_TAG, crcAutoFix)?.body ?: return null
         val root = Tlv.decode(body, strict = true)?.firstOrNull { it.id == "00" } ?: return null
         val subTags = Tlv.decode(root.value, strict = true) ?: return null
         val fields = HashMap<String, String>()

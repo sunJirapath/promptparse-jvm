@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -11,7 +11,7 @@ class ParseModesTest {
 
     @Test
     fun `not TLV at all`() {
-        for (s in listOf("", "0", "0002", "AAAA0000", "00x2010", "0002\n", "0002\r1", "0002 1", " 000201")) {
+        for (s in listOf("", "0", "0002", "AAAA0000", "00x2010", "0002\n", "0002\r1", "0002 1")) {
             assertNull(PromptParse.parse(s), "lenient: '${s.replace("\n", "\\n")}'")
             assertNull(PromptParse.parse(s, strict = true))
         }

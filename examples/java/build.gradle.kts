@@ -21,7 +21,7 @@ val runExample by tasks.registering(JavaExec::class) {
     group = "verification"
     description = "Runs the Java example; fails the build if any assertion in it fails."
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "io.github.sunJirapath.promptparse.example.Example"
+    mainClass = "io.github.sunjirapath.promptparse.example.Example"
 }
 
 tasks.check {

@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 /** Entry point for parsing and checking EMVCo-style QR payloads. */
 public object PromptParse {
@@ -6,7 +6,9 @@ public object PromptParse {
     /**
      * Parses any EMVCo-compatible QR payload.
      *
-     * Never throws. Returns `null` when [payload] is not TLV at all (it must start with 4 digits and
+     * Never throws. Surrounding whitespace from a scanner is ignored (strict: spaces, tabs and line breaks on
+     * both sides; lenient: leading whitespace and trailing line breaks), so `encode()` and every other
+     * result reflect the trimmed payload. Returns `null` when [payload] is not TLV at all (it must start with 4 digits and
      * have at least 5 chars) or decodes to no tag.
      *
      * - **Lenient** (default): a malformed or truncated tag ends decoding and the tags before it are kept.
@@ -20,9 +22,10 @@ public object PromptParse {
     @JvmStatic
     @JvmOverloads
     public fun parse(payload: String, strict: Boolean = false, subTags: Boolean = true): EmvcoQr? {
-        if (!Tlv.looksLikeTlv(payload)) return null
-        if (strict && !Tlv.crcMatches(payload)) return null
-        val decoded = Tlv.decode(payload, strict) ?: return null
+        val text = if (strict) Tlv.trimScan(payload) else Tlv.trimScanLenient(payload)
+        if (!Tlv.looksLikeTlv(text)) return null
+        if (strict && !Tlv.crcMatches(text)) return null
+        val decoded = Tlv.decode(text, strict) ?: return null
         if (decoded.isEmpty()) return null
         val tags = decoded.filter { it.id != CRC_TAG_ID }.map {
             if (subTags) Tag.of(it.id, it.value) else it
@@ -38,13 +41,15 @@ public object PromptParse {
      */
     @JvmStatic
     public fun fixTruncatedCrc(payload: String): String? =
-        Tlv.splitCrc(payload, CRC_TAG_ID, autoFix = true)?.takeIf { it.truncated }?.repaired
+        Tlv.splitCrc(Tlv.trimScan(payload), CRC_TAG_ID, autoFix = true)?.takeIf { it.truncated }?.repaired
 
     /**
      * True if [payload] ends in a `6304` CRC tag whose 4 hex digits (either case) are the
      * CRC-16/CCITT-FALSE of everything before them. Never throws.
      */
     @JvmStatic
-    public fun validateCrc(payload: String): Boolean =
-        payload.length >= 8 && payload.startsWith("6304", payload.length - 8) && Tlv.crcMatches(payload)
+    public fun validateCrc(payload: String): Boolean {
+        val text = Tlv.trimScan(payload)
+        return text.length >= 8 && text.startsWith("6304", text.length - 8) && Tlv.crcMatches(text)
+    }
 }

@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 /**
  * One TLV element: a 2-digit [id], its [value] and, for template tags such as 29 and 30, the

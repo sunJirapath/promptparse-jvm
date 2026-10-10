@@ -13,13 +13,13 @@ Zero runtime dependencies (Kotlin stdlib only), Java-friendly, immutable and thr
 
 ### Install
 
-Coordinates are placeholders until the first release: `io.github.sunJirapath:promptparse:0.1.0-SNAPSHOT`.
+Coordinates are placeholders until the first release: `io.github.sunjirapath:promptparse:0.1.0-SNAPSHOT`.
 Requires Java 11+.
 
 ### Kotlin quick start
 
 ```kotlin
-import io.github.sunJirapath.promptparse.*
+import io.github.sunjirapath.promptparse.*
 import java.math.BigDecimal
 
 // Generate
@@ -36,7 +36,7 @@ SlipVerify.build("002", "0002123123121200011")         // 0040000600000101030020
 SlipVerify.parse(scanned)                              // SlipVerifyInfo? - null if it is not a slip
 SlipVerify.parse(scanned, crcAutoFix = false)          // refuse CRCs shortened by bank apps
 TrueMoney.build("0801111111", BigDecimal("10.05"), "Hello")
-BotBarcode.parse("|0999999999999901112223334440")?.toBillPayment()
+BotBarcode.parse("|099999999999990\r111222333444\r\r0")?.toBillPayment()
 
 // Read PromptPay payloads back
 PromptPay.parseAnyId(qr)                               // AnyIdInfo(type=MSISDN, target=0812223333, amount=30.00)
@@ -61,6 +61,25 @@ A complete, self-checking example lives in [`examples/java`](examples/java) and 
 - Slip verify parsers repair a CRC whose leading zeros a bank app dropped (1-3 hex digits left) unless `crcAutoFix = false`; builders never shorten it. `PromptParse.fixTruncatedCrc` does the same for tag-63 payment QRs on request.
 - Mobile numbers accept `0812345678`, `081-234-5678`, `+66812345678`, `66812345678`, `0066812345678`.
 - Every deliberate difference from the TypeScript reference is listed in [`docs/SPEC_NOTES.md`](docs/SPEC_NOTES.md).
+
+### Differences from promptparse
+
+Behavior was ported from [promptparse](https://github.com/maythiwat/promptparse); where this library deliberately differs:
+
+| Area | promptparse (TypeScript) | promptparse-jvm |
+|---|---|---|
+| TrueMoney slip | rejects only if *both* marker sub-tags are wrong, and may return missing fields as `undefined` | needs **both** markers (`00` and `01` = `01`) **and** event type, transaction id and date, else `null` (the rule `thai-qr-payment` documents) |
+| `BotBarcode` amount | `0`/missing means "none", `0` is also accepted when generating | `build` takes `null` for "no amount" and **rejects 0 or negative** amounts with `IllegalArgumentException`; `parse` turns the wire value `0` (or all zeros) into `null` |
+| Amounts | JS `number`, `toFixed(2)`; `0` silently makes a static QR | `BigDecimal`, `HALF_UP`, always `> 0` after rounding |
+| Mobile numbers | only `0xxxxxxxxx` / `66xxxxxxxxx` work | also `+66`, dashes/spaces and `0066...`; anything else throws |
+| Lengths and CRC | UTF-16 units for lengths, UTF-8 bytes for the CRC | UTF-8 bytes for both |
+| Invalid input | generators do not validate; parsers return `null` | generators throw `IllegalArgumentException`; parsers return `null`/`false` and never throw |
+| Slip CRC | repaired if shortened; `lastIndexOf("9104")` can misplace the CRC | repaired (1-3 digits, `crcAutoFix = false` disables); the CRC is located from the end |
+| Whitespace | not handled | surrounding spaces, tabs and line breaks from scanners are ignored (see below) |
+
+Whitespace: strict parsing, slip/TrueMoney readers, `validateCrc` and `fixTruncatedCrc` trim spaces, tabs, `\r` and `\n` on both sides;
+lenient `PromptParse.parse` trims leading whitespace and trailing line breaks only (a last value may end in a space);
+`BotBarcode.parse` ignores leading whitespace and one trailing `\n` or `\r\n`. Anything returned (for example `EmvcoQr.encode()`) is built from the trimmed text.
 
 ### Build
 

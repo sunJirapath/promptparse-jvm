@@ -1,14 +1,14 @@
-package io.github.sunJirapath.promptparse.example;
+package io.github.sunjirapath.promptparse.example;
 
-import io.github.sunJirapath.promptparse.AnyIdInfo;
-import io.github.sunJirapath.promptparse.AnyIdType;
-import io.github.sunJirapath.promptparse.EmvcoQr;
-import io.github.sunJirapath.promptparse.PromptParse;
-import io.github.sunJirapath.promptparse.BotBarcode;
-import io.github.sunJirapath.promptparse.PromptPay;
-import io.github.sunJirapath.promptparse.SlipVerify;
-import io.github.sunJirapath.promptparse.SlipVerifyInfo;
-import io.github.sunJirapath.promptparse.TrueMoney;
+import io.github.sunjirapath.promptparse.AnyIdInfo;
+import io.github.sunjirapath.promptparse.AnyIdType;
+import io.github.sunjirapath.promptparse.EmvcoQr;
+import io.github.sunjirapath.promptparse.PromptParse;
+import io.github.sunjirapath.promptparse.BotBarcode;
+import io.github.sunjirapath.promptparse.PromptPay;
+import io.github.sunjirapath.promptparse.SlipVerify;
+import io.github.sunjirapath.promptparse.SlipVerifyInfo;
+import io.github.sunjirapath.promptparse.TrueMoney;
 import java.math.BigDecimal;
 
 /** Plain Java usage of promptparse-jvm. Fails with an AssertionError if any output is unexpected. */

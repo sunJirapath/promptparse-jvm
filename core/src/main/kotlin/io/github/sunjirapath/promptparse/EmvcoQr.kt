@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 /**
  * An EMVCo merchant-presented QR payload as an ordered list of top-level [tags].

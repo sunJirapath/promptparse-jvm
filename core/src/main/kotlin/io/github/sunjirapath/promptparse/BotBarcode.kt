@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -32,13 +32,14 @@ public object BotBarcode {
     }
 
     /**
-     * Reads a barcode; `null` unless it starts with `|`, has exactly four `\r`-separated fields, a biller ID of at
+     * Reads a barcode (leading whitespace and one trailing `\n` or `\r\n` from the scanner are ignored); `null` unless it starts with `|`, has exactly four `\r`-separated fields, a biller ID of at
      * least 15 characters, a non-empty ref1 and an amount that is all digits (whole satang). Never throws.
      */
     @JvmStatic
     public fun parse(payload: String): BotBarcodeInfo? {
-        if (!payload.startsWith("|")) return null
-        val parts = payload.substring(1).split('\r')
+        val text = payload.trimStart().removeSuffix("\r\n").removeSuffix("\n")
+        if (!text.startsWith("|")) return null
+        val parts = text.substring(1).split('\r')
         if (parts.size != 4) return null
         val (billerId, ref1, ref2, amountField) = parts
         if (billerId.length < BILLER_ID_LENGTH || ref1.isEmpty()) return null

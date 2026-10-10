@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -41,13 +41,13 @@ class SlipPropertyTest {
         assertEquals(TrueMoneySlipVerifyInfo(txn, ref, "01012025"), SlipVerify.parseTrueMoney(tm))
 
         val stdCrc = std.takeLast(4)
-        for (dropped in 1..(4 - stdCrc.trimStart('0').length)) {
+        for (dropped in 1..minOf(3, 4 - stdCrc.trimStart('0').length)) {
             val short = std.dropLast(4) + stdCrc.substring(dropped)
             assertEquals(SlipVerifyInfo(code, ref), SlipVerify.parse(short))
             assertNull(SlipVerify.parse(short, crcAutoFix = false))
         }
         val tmCrc = tm.takeLast(4)
-        for (dropped in 1..(4 - tmCrc.trimStart('0').length)) {
+        for (dropped in 1..minOf(3, 4 - tmCrc.trimStart('0').length)) {
             val short = tm.dropLast(4) + tmCrc.substring(dropped)
             assertEquals(TrueMoneySlipVerifyInfo(txn, ref, "01012025"), SlipVerify.parseTrueMoney(short))
             assertNull(SlipVerify.parseTrueMoney(short, crcAutoFix = false))

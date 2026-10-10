@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 import java.math.BigDecimal
 import kotlin.test.assertEquals
@@ -87,7 +87,7 @@ class PropertyTest {
         val at = Math.floorMod(position, payload.length + 1)
         val mutated = payload.substring(0, at) + junk.take(3) + payload.substring(minOf(at + 1, payload.length))
         val strict = PromptParse.parse(mutated, strict = true)
-        if (strict != null) assertTrue(Tlv.crcMatches(mutated))
+        if (strict != null) assertTrue(Tlv.crcMatches(Tlv.trimScan(mutated)))
         PromptParse.parse(mutated)
         PromptPay.parseAnyId(mutated)
     }

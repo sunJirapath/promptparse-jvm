@@ -1,4 +1,4 @@
-package io.github.sunJirapath.promptparse
+package io.github.sunjirapath.promptparse
 
 /** Id of the CRC tag. It is derived data: never stored in [EmvcoQr], always recomputed by `encode()`. */
 internal const val CRC_TAG_ID: String = "63"
@@ -21,10 +21,21 @@ internal object Tlv {
         return !isLineTerminator(s[4])
     }
 
+    private fun isScannerWhitespace(c: Char): Boolean = c == ' ' || c == '\t' || c == '\r' || c == '\n'
+
+    /** Drops the spaces, tabs and line breaks a scanner or a copy-paste leaves around a payload. */
+    fun trimScan(s: String): String = s.trim(::isScannerWhitespace)
+
+    /**
+     * Like [trimScan] at the start, but at the end only line breaks: a payload without a CRC may end in a
+     * value that legitimately ends with a space.
+     */
+    fun trimScanLenient(s: String): String = s.trimStart(::isScannerWhitespace).trimEnd('\r', '\n')
+
     fun isDigit(c: Char): Boolean = c in '0'..'9'
 
     private fun isLineTerminator(c: Char): Boolean =
-        c == '\n' || c == '\r' || c == ' ' || c == ' '
+        c == '\n' || c == '\r' || c == '\u2028' || c == '\u2029'
 
     fun isTagId(id: String): Boolean = id.length == 2 && isDigit(id[0]) && isDigit(id[1])
 
