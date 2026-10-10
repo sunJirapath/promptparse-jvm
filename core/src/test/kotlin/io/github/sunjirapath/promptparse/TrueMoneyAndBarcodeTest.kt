@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:max-line-length") // test vectors are long payload strings
+
 package io.github.sunjirapath.promptparse
 
 import java.math.BigDecimal
