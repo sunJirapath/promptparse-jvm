@@ -2,7 +2,7 @@ package io.github.sunJirapath.promptparse
 
 import java.math.BigDecimal
 
-private const val AID_ANY_ID = "A000000677010111"
+internal const val AID_ANY_ID = "A000000677010111"
 private const val AID_BILL_PAYMENT = "A000000677010112"
 
 /** Generates and reads Thai PromptPay QR payloads. */
@@ -29,7 +29,7 @@ public object PromptPay {
             "29",
             listOf(Tag("00", AID_ANY_ID), Tag(type.subTagId, normalizeTarget(type, target))),
         )
-        return merchantQr(account, amount, ref3 = null)
+        return merchantQr(account, amount, emptyList())
     }
 
     /**
@@ -55,7 +55,8 @@ public object PromptPay {
         require(ref1.isNotEmpty()) { "ref1 must not be empty" }
         val subTags = mutableListOf(Tag("00", AID_BILL_PAYMENT), Tag("01", billerId), Tag("02", ref1))
         if (!ref2.isNullOrEmpty()) subTags.add(Tag("03", ref2))
-        return merchantQr(Tag.template("30", subTags), amount, ref3)
+        val extra = if (ref3.isNullOrEmpty()) emptyList() else listOf(Tag.template("62", listOf(Tag("07", ref3))))
+        return merchantQr(Tag.template("30", subTags), amount, extra)
     }
 
     /**
@@ -90,15 +91,16 @@ public object PromptPay {
         return BillPaymentInfo(billerId, ref1, qr.value("30", "03"), qr.value("62", "07"), amount.value)
     }
 
-    private class Amount(val value: BigDecimal?)
+    internal class Amount(val value: BigDecimal?)
 
     /** `Amount(null)` when there is no tag 54, `null` when tag 54 is present but unreadable. */
-    private fun readAmount(qr: EmvcoQr): Amount? {
+    internal fun readAmount(qr: EmvcoQr): Amount? {
         val text = qr.value("54") ?: return Amount(null)
         return Amounts.parse(text)?.let(::Amount)
     }
 
-    private fun merchantQr(account: Tag, amount: BigDecimal?, ref3: String?): String {
+    /** Tags 00, 01, [account], 53, 58, [54], then [extra] (the order the reference's golden vectors use). */
+    internal fun merchantQr(account: Tag, amount: BigDecimal?, extra: List<Tag>): String {
         val tags = mutableListOf(
             Tag("00", "01"),
             Tag("01", if (amount == null) "11" else "12"),
@@ -108,7 +110,7 @@ public object PromptPay {
         )
         // The reference puts 54 after 58, and its golden vectors depend on that order.
         if (amount != null) tags.add(Tag("54", Amounts.format(amount)))
-        if (!ref3.isNullOrEmpty()) tags.add(Tag.template("62", listOf(Tag("07", ref3))))
+        tags.addAll(extra)
         return EmvcoQr(tags).encode()
     }
 
@@ -126,7 +128,8 @@ public object PromptPay {
         return s
     }
 
-    private fun normalizeMobile(compact: String): String {
+    /** `0066` + the 9 national digits, from any accepted spelling of a Thai mobile number. */
+    internal fun normalizeMobile(compact: String): String {
         val plus = compact.startsWith("+")
         val s = if (plus) compact.substring(1) else compact
         val national = when {

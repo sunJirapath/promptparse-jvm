@@ -207,3 +207,9 @@ Executed tqp's code; promptparse outputs are its own vectors (already green in o
 ## 10. Test plan for Part 2 (will be added with the code)
 
 Slip verify: valid standard and TrueMoney (both vectors above); truncated CRC of 1, 2 and 3 chars for both variants (tqp's `T00000086`, `T00000178`, `T00003342`, `TXN0000000005` cases); payload whose CRC itself contains `9104`; wrong root tag, wrong API marker, TrueMoney marker pair missing, standard-vs-TrueMoney cross-rejection, tag-63 PromptPay payload, empty/garbage, bad CRC, trailing bytes, >4-char tail, empty tail → `null`; `crcAutoFix = false` → `null` for each truncated case; lowercase/uppercase CRC accepted on parse; generators never truncate and throw `IllegalArgumentException` on bad input; round-trip property test (random bank/ref/date → `parse(build(x)) == x`) and fuzz (never throws); Java example extended; cross-check test asserting our output equals tqp's recorded vectors where both references agree.
+
+## 11. Part 2 decisions and result
+
+Approved: P1, P2, P3. Skipped: P4 (bank account / OTA / cross-border / tag 62 sub-fields) and P6 (lenient mobile read). **Tag order unchanged** (P5 declined: 54 stays after 58, as in promptparse).
+API shape: one `SlipVerify` object with `build` / `parse` (standard) and `buildTrueMoney` / `parseTrueMoney`.
+Implemented differences from either reference, on purpose: standard slip CRC accepted in either case (tqp: uppercase only); bank code must be 3 digits and TrueMoney date 8 digits on generate; TrueMoney slip needs both markers and all three fields (tqp's rule, not promptparse's); CRC repair searches from the end; `BotBarcode.build` rejects amounts <= 0 (tqp writes `0`, meaning "none", for 0 — pass `null` instead).

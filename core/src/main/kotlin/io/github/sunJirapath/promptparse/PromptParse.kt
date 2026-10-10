@@ -31,6 +31,16 @@ public object PromptParse {
     }
 
     /**
+     * Restores a payment QR whose `63` CRC was shortened to 1-3 hex digits (some bank apps drop leading
+     * zeros): returns the payload with the CRC left-padded to 4 digits if that makes it valid, otherwise `null`.
+     * A payload whose CRC is already complete also gives `null`. [parse] never repairs; call this first if wanted.
+     * Never throws.
+     */
+    @JvmStatic
+    public fun fixTruncatedCrc(payload: String): String? =
+        Tlv.splitCrc(payload, CRC_TAG_ID, autoFix = true)?.takeIf { it.truncated }?.repaired
+
+    /**
      * True if [payload] ends in a `6304` CRC tag whose 4 hex digits (either case) are the
      * CRC-16/CCITT-FALSE of everything before them. Never throws.
      */

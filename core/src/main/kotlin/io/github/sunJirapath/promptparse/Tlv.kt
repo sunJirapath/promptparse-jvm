@@ -162,12 +162,38 @@ internal object Tlv {
     /** True if the last 4 chars of [payload] are the CRC of everything before them (hex digits compared ASCII-case-insensitively). */
     fun crcMatches(payload: String): Boolean {
         if (payload.length < 4) return false
-        val given = payload.substring(payload.length - 4)
-        val expected = checksum(payload.substring(0, payload.length - 4))
-        for (i in 0 until 4) {
+        return hexEquals(payload.substring(payload.length - 4), checksum(payload.substring(0, payload.length - 4)))
+    }
+
+    /** [given] equals the uppercase [expected] hex, ignoring ASCII case in [given]. */
+    private fun hexEquals(given: String, expected: String): Boolean {
+        if (given.length != expected.length) return false
+        for (i in given.indices) {
             val g = given[i]
             if ((if (g in 'a'..'f') g - 32 else g) != expected[i]) return false
         }
         return true
+    }
+
+    /** A payload split at its trailing CRC tag. [body] is everything before the tag; [repaired] is the payload with a full 4-digit CRC. */
+    class CrcSplit(val body: String, val repaired: String, val truncated: Boolean)
+
+    /**
+     * Finds the CRC tag [tagId] at the very end of [payload] and checks its checksum.
+     *
+     * With [autoFix], a CRC with 1-3 hex digits (some bank apps drop leading zeros) is left-padded with
+     * `0` and accepted if it then matches. Candidates are tried by position from the end, so a CRC whose
+     * own digits spell the tag header (e.g. `9104` + `9104`) is still found.
+     */
+    fun splitCrc(payload: String, tagId: String, autoFix: Boolean): CrcSplit? {
+        val header = tagId + "04"
+        for (tail in 4 downTo (if (autoFix) 1 else 4)) {
+            val start = payload.length - tail - header.length
+            if (start < 0 || !payload.startsWith(header, start)) continue
+            val seed = payload.substring(0, start + header.length)
+            val padded = payload.substring(seed.length).padStart(4, '0')
+            if (hexEquals(padded, checksum(seed))) return CrcSplit(payload.substring(0, start), seed + padded, tail < 4)
+        }
+        return null
     }
 }

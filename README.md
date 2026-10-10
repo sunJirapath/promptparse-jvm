@@ -31,6 +31,13 @@ val parsed = PromptParse.parse(qr, strict = true)      // EmvcoQr? - null when i
 parsed?.value("29", "01")                              // "0066812223333"
 parsed?.with("54", "99.00")?.encode()                  // CRC is always recomputed
 
+// Slip verify mini QR (standard + TrueMoney), TrueMoney QR, BOT barcode
+SlipVerify.build("002", "0002123123121200011")         // 0040000600000101030020...91049C30
+SlipVerify.parse(scanned)                              // SlipVerifyInfo? - null if it is not a slip
+SlipVerify.parse(scanned, crcAutoFix = false)          // refuse CRCs shortened by bank apps
+TrueMoney.build("0801111111", BigDecimal("10.05"), "Hello")
+BotBarcode.parse("|0999999999999901112223334440")?.toBillPayment()
+
 // Read PromptPay payloads back
 PromptPay.parseAnyId(qr)                               // AnyIdInfo(type=MSISDN, target=0812223333, amount=30.00)
 PromptParse.validateCrc(qr)                            // true
@@ -51,6 +58,7 @@ A complete, self-checking example lives in [`examples/java`](examples/java) and 
 - Invalid *input to generators* throws `IllegalArgumentException`; invalid *payloads to parsers* return `null` / `false`. Parsers never throw.
 - TLV lengths count UTF-8 bytes; the CRC is CRC-16/CCITT-FALSE over UTF-8 bytes, always written in uppercase.
 - Amounts are `BigDecimal`, written with 2 decimals (`HALF_UP`); amounts <= 0 are rejected.
+- Slip verify parsers repair a CRC whose leading zeros a bank app dropped (1-3 hex digits left) unless `crcAutoFix = false`; builders never shorten it. `PromptParse.fixTruncatedCrc` does the same for tag-63 payment QRs on request.
 - Mobile numbers accept `0812345678`, `081-234-5678`, `+66812345678`, `66812345678`, `0066812345678`.
 - Every deliberate difference from the TypeScript reference is listed in [`docs/SPEC_NOTES.md`](docs/SPEC_NOTES.md).
 
@@ -64,7 +72,9 @@ A complete, self-checking example lives in [`examples/java`](examples/java) and 
 ### Credits and license
 
 Ported from [maythiwat/promptparse](https://github.com/maythiwat/promptparse) (MIT, © Maythiwat Chomchuen) —
-behavior, tag identifiers and golden test vectors come from it. See [NOTICE](NOTICE).
+behavior, tag identifiers and golden test vectors come from it. Slip Verify, TrueMoney and BOT barcode behavior
+and vectors are cross-checked against and partly derived from
+[uunw/thai-qr-payment](https://github.com/uunw/thai-qr-payment) (MIT, © 2026 uunw). See [NOTICE](NOTICE).
 This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## ภาษาไทย
@@ -90,6 +100,7 @@ String qr = PromptPay.anyId(AnyIdType.MSISDN, "0812223333", new BigDecimal("30")
 EmvcoQr parsed = PromptParse.parse(qr, true);
 ```
 
+- `SlipVerify` (สลิปมาตรฐาน + TrueMoney) แก้ CRC ที่แอปธนาคารตัดเลข 0 นำหน้าให้อัตโนมัติ ปิดได้ด้วย `crcAutoFix = false`
 - ข้อมูลที่ส่งเข้า *ตัวสร้าง* ไม่ถูกต้อง จะ throw `IllegalArgumentException`; ส่วน *ตัวอ่าน* จะคืนค่า `null` / `false` และไม่ throw
 - ความยาว TLV นับเป็นไบต์ UTF-8 และ CRC เป็น CRC-16/CCITT-FALSE ตัวพิมพ์ใหญ่เสมอ
 - ยอดเงินใช้ `BigDecimal` ทศนิยม 2 ตำแหน่ง ปัดแบบ `HALF_UP` และไม่รับค่า <= 0
@@ -97,5 +108,6 @@ EmvcoQr parsed = PromptParse.parse(qr, true);
 
 ### เครดิต
 
-พอร์ตจาก [maythiwat/promptparse](https://github.com/maythiwat/promptparse) (MIT) ดู [NOTICE](NOTICE) —
+พอร์ตจาก [maythiwat/promptparse](https://github.com/maythiwat/promptparse) (MIT) และอ้างอิง/เทียบพฤติกรรมกับ
+[uunw/thai-qr-payment](https://github.com/uunw/thai-qr-payment) (MIT) ดู [NOTICE](NOTICE) —
 โปรเจกต์นี้อยู่ภายใต้ [Apache License 2.0](LICENSE)

@@ -41,6 +41,33 @@ public final class io/github/sunJirapath/promptparse/BillPaymentInfo {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class io/github/sunJirapath/promptparse/BotBarcode {
+	public static final field INSTANCE Lio/github/sunJirapath/promptparse/BotBarcode;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;)Ljava/lang/String;
+	public static synthetic fun build$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun parse (Ljava/lang/String;)Lio/github/sunJirapath/promptparse/BotBarcodeInfo;
+}
+
+public final class io/github/sunJirapath/promptparse/BotBarcodeInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/math/BigDecimal;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;)Lio/github/sunJirapath/promptparse/BotBarcodeInfo;
+	public static synthetic fun copy$default (Lio/github/sunJirapath/promptparse/BotBarcodeInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;ILjava/lang/Object;)Lio/github/sunJirapath/promptparse/BotBarcodeInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAmount ()Ljava/math/BigDecimal;
+	public final fun getBillerId ()Ljava/lang/String;
+	public final fun getRef1 ()Ljava/lang/String;
+	public final fun getRef2 ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun toBillPayment ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/sunJirapath/promptparse/EmvcoQr {
 	public fun <init> (Ljava/util/List;)V
 	public final fun encode ()Ljava/lang/String;
@@ -59,6 +86,7 @@ public final class io/github/sunJirapath/promptparse/EmvcoQr {
 
 public final class io/github/sunJirapath/promptparse/PromptParse {
 	public static final field INSTANCE Lio/github/sunJirapath/promptparse/PromptParse;
+	public static final fun fixTruncatedCrc (Ljava/lang/String;)Ljava/lang/String;
 	public static final fun parse (Ljava/lang/String;)Lio/github/sunJirapath/promptparse/EmvcoQr;
 	public static final fun parse (Ljava/lang/String;Z)Lio/github/sunJirapath/promptparse/EmvcoQr;
 	public static final fun parse (Ljava/lang/String;ZZ)Lio/github/sunJirapath/promptparse/EmvcoQr;
@@ -80,6 +108,31 @@ public final class io/github/sunJirapath/promptparse/PromptPay {
 	public static final fun parseBillPayment (Ljava/lang/String;)Lio/github/sunJirapath/promptparse/BillPaymentInfo;
 }
 
+public final class io/github/sunJirapath/promptparse/SlipVerify {
+	public static final field INSTANCE Lio/github/sunJirapath/promptparse/SlipVerify;
+	public static final fun build (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun buildTrueMoney (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun parse (Ljava/lang/String;)Lio/github/sunJirapath/promptparse/SlipVerifyInfo;
+	public static final fun parse (Ljava/lang/String;Z)Lio/github/sunJirapath/promptparse/SlipVerifyInfo;
+	public static synthetic fun parse$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunJirapath/promptparse/SlipVerifyInfo;
+	public static final fun parseTrueMoney (Ljava/lang/String;)Lio/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo;
+	public static final fun parseTrueMoney (Ljava/lang/String;Z)Lio/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo;
+	public static synthetic fun parseTrueMoney$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo;
+}
+
+public final class io/github/sunJirapath/promptparse/SlipVerifyInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lio/github/sunJirapath/promptparse/SlipVerifyInfo;
+	public static synthetic fun copy$default (Lio/github/sunJirapath/promptparse/SlipVerifyInfo;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/sunJirapath/promptparse/SlipVerifyInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSendingBank ()Ljava/lang/String;
+	public final fun getTransRef ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class io/github/sunJirapath/promptparse/Tag {
 	public static final field Companion Lio/github/sunJirapath/promptparse/Tag$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
@@ -98,5 +151,44 @@ public final class io/github/sunJirapath/promptparse/Tag {
 public final class io/github/sunJirapath/promptparse/Tag$Companion {
 	public final fun of (Ljava/lang/String;Ljava/lang/String;)Lio/github/sunJirapath/promptparse/Tag;
 	public final fun template (Ljava/lang/String;Ljava/util/List;)Lio/github/sunJirapath/promptparse/Tag;
+}
+
+public final class io/github/sunJirapath/promptparse/TrueMoney {
+	public static final field INSTANCE Lio/github/sunJirapath/promptparse/TrueMoney;
+	public static final fun build (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun build (Ljava/lang/String;Ljava/math/BigDecimal;)Ljava/lang/String;
+	public static final fun build (Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;)Ljava/lang/String;
+	public static synthetic fun build$default (Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun parse (Ljava/lang/String;)Lio/github/sunJirapath/promptparse/TrueMoneyInfo;
+}
+
+public final class io/github/sunJirapath/promptparse/TrueMoneyInfo {
+	public fun <init> (Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/math/BigDecimal;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;)Lio/github/sunJirapath/promptparse/TrueMoneyInfo;
+	public static synthetic fun copy$default (Lio/github/sunJirapath/promptparse/TrueMoneyInfo;Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;ILjava/lang/Object;)Lio/github/sunJirapath/promptparse/TrueMoneyInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAmount ()Ljava/math/BigDecimal;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getMobile ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lio/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo;
+	public static synthetic fun copy$default (Lio/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/github/sunJirapath/promptparse/TrueMoneySlipVerifyInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDate ()Ljava/lang/String;
+	public final fun getEventType ()Ljava/lang/String;
+	public final fun getTransactionId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
