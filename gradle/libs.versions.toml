@@ -13,8 +13,19 @@ googleJavaFormat = "1.36.1"
 # Newest stable detekt (Feb 2025). 2.0.0 is still alpha. It targets Kotlin 2.0 but analyses our sources fine.
 detekt = "1.23.8"
 dokka = "2.2.0"
+animalsniffer = "2.0.1"
+agp = "9.4.1"
+androidxTestExtJunit = "1.3.0"
+androidxTestRunner = "1.7.0"
+junit4 = "4.13.2"
+# Android API 21 (5.0) signature: the oldest level the library is checked against.
+androidSignature21 = "5.0.1_r2"
 
 [libraries]
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidxTestExtJunit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+android-signature = { module = "net.sf.androidscents.signature:android-api-level-21", version.ref = "androidSignature21" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
@@ -29,3 +40,5 @@ maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPubli
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+animalsniffer = { id = "ru.vyarus.animalsniffer", version.ref = "animalsniffer" }
+android-library = { id = "com.android.library", version.ref = "agp" }
