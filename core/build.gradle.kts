@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -5,6 +7,7 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.dokka)
 }
 
 kotlin {
@@ -63,11 +66,12 @@ tasks.check {
     dependsOn(tasks.koverVerify)
 }
 
-// Configured but never invoked by `build`; nothing is published from this repository yet.
+// Release configuration. Nothing is published from a normal build; see .github/workflows/release.yml.
 mavenPublishing {
+    configure(KotlinJvm(javadocJar = JavadocJar.Dokka("dokkaGeneratePublicationHtml"), sourcesJar = true))
     publishToMavenCentral()
     signAllPublications()
-    coordinates(group.toString(), "promptparse", version.toString())
+    // groupId (GROUP), version (VERSION_NAME) and artifactId (POM_ARTIFACT_ID) come from gradle.properties.
 
     pom {
         name = "promptparse-jvm"
