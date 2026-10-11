@@ -1,6 +1,9 @@
 # Minimal overrides on top of detekt's defaults (buildUponDefaultConfig = true).
 # Each one is a judgement call for a byte-twiddling parser library; everything else stays at the default.
 complexity:
+  LongMethod:
+    # Test tables are long lists of cases, not logic.
+    excludes: ['**/test/**']
   TooManyFunctions:
     # Tlv is the single internal home of the TLV/CRC primitives.
     thresholdInObjects: 20
