@@ -1,5 +1,10 @@
 # promptparse-jvm
 
+[![CI](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.sunjirapath/promptparse)](https://central.sonatype.com/artifact/io.github.sunjirapath/promptparse)
+[![License](https://img.shields.io/github/license/sunJirapath/promptparse-jvm)](LICENSE)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FsunJirapath%2Fpromptparse-jvm%2Fbadges%2Fcoverage.json)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
+
 Parse, generate and validate Thai **PromptPay** / **EMVCo** merchant-presented QR payloads on the JVM.
 Zero runtime dependencies (Kotlin stdlib only), Java-friendly, immutable and thread-safe.
 
@@ -13,45 +18,96 @@ Zero runtime dependencies (Kotlin stdlib only), Java-friendly, immutable and thr
 
 ### Install
 
-Coordinates are placeholders until the first release: `io.github.sunjirapath:promptparse:0.1.0-SNAPSHOT`.
-Requires Java 11+.
+Not released yet: the badges above, and the coordinates below, work once the first version is on Maven Central.
 
-### Kotlin quick start
+```kotlin
+// Gradle (Kotlin DSL)
+dependencies {
+    implementation("io.github.sunjirapath:promptparse:<version>")
+}
+```
+
+```xml
+<!-- Maven -->
+<dependency>
+  <groupId>io.github.sunjirapath</groupId>
+  <artifactId>promptparse</artifactId>
+  <version>VERSION</version>
+</dependency>
+```
+
+**Supported platforms:** Java 11 or newer (bytecode target 11, compile-checked with `-Xjdk-release=11`); CI runs the
+tests on JDK 11, 17, 21 and 25 on Linux and on JDK 21 on Windows. The only runtime dependency is the Kotlin stdlib.
+Android has **not been tested**; nothing in the library needs more than Java 11 APIs, but no Android API level is promised.
+
+The library produces and reads payload *strings*. Turning a string into a QR image is up to you
+(for example ZXing or `qrcode-kotlin`).
+
+### Quick start by use case
+
+**1. Generate a checkout QR**
 
 ```kotlin
 import io.github.sunjirapath.promptparse.*
 import java.math.BigDecimal
 
-// Generate
-val qr = PromptPay.anyId(AnyIdType.MSISDN, "081-222-3333", BigDecimal("30"))
-val bill = PromptPay.billPayment("0112233445566", ref1 = "CUSTOMER001", ref2 = "INV001")
+// Pay a phone number, with an amount (dynamic QR) or without (static QR, payer types the amount)
+val payload = PromptPay.anyId(AnyIdType.MSISDN, "081-222-3333", BigDecimal("250.00"))
+val staticQr = PromptPay.anyId(AnyIdType.NATID, "1234567890123")
 
-// Parse (lenient by default; strict = true also requires a valid CRC and well-formed TLV)
-val parsed = PromptParse.parse(qr, strict = true)      // EmvcoQr? - null when invalid
-parsed?.value("29", "01")                              // "0066812223333"
-parsed?.with("54", "99.00")?.encode()                  // CRC is always recomputed
-
-// Slip verify mini QR (standard + TrueMoney), TrueMoney QR, BOT barcode
-SlipVerify.build("002", "0002123123121200011")         // 0040000600000101030020...91049C30
-SlipVerify.parse(scanned)                              // SlipVerifyInfo? - null if it is not a slip
-SlipVerify.parse(scanned, crcAutoFix = false)          // refuse CRCs shortened by bank apps
-TrueMoney.build("0801111111", BigDecimal("10.05"), "Hello")
-BotBarcode.parse("|099999999999990\r111222333444\r\r0")?.toBillPayment()
-
-// Read PromptPay payloads back
-PromptPay.parseAnyId(qr)                               // AnyIdInfo(type=MSISDN, target=0812223333, amount=30.00)
-PromptParse.validateCrc(qr)                            // true
+// Pay a biller: ref1 is usually the order or invoice number
+val bill = PromptPay.billPayment("0112233445566", "ORDER-1042", ref2 = "SHOP-A", amount = BigDecimal("250"))
+// payload / bill are the strings to encode into the QR image
 ```
-
-### Java quick start
 
 ```java
-String qr = PromptPay.anyId(AnyIdType.MSISDN, "0812223333", new BigDecimal("30"));
-EmvcoQr parsed = PromptParse.parse(qr, true);          // null if invalid
-String target = parsed.value("29", "01");
+String payload = PromptPay.anyId(AnyIdType.MSISDN, "081-222-3333", new BigDecimal("250.00"));
+String bill = PromptPay.billPayment("0112233445566", "ORDER-1042", "SHOP-A", new BigDecimal("250"));
 ```
 
-A complete, self-checking example lives in [`examples/java`](examples/java) and runs as part of `./gradlew build`.
+Generators throw `IllegalArgumentException` with a clear message for invalid input (bad number, amount <= 0, ...).
+
+**2. Pre-validate a payment slip before calling the bank API**
+
+```kotlin
+val slip = SlipVerify.parse(scannedText)          // SlipVerifyInfo? - null if it is not a standard slip
+    ?: return reject("not a slip QR")             // also null for a bad CRC, wrong marker, trailing junk
+callBankOpenApi(slip.sendingBank, slip.transRef)  // your code
+// TrueMoney slips have their own variant:
+val tm = SlipVerify.parseTrueMoney(scannedText)
+```
+
+```java
+SlipVerifyInfo slip = SlipVerify.parse(scannedText);   // null if not a valid standard slip
+if (slip == null) { /* reject */ }
+```
+
+Some bank apps drop the leading zeros of the slip CRC; the parser repairs that by default.
+Pass `crcAutoFix = false` (Java: `SlipVerify.parse(text, false)`) to refuse it.
+
+**3. Parse a scanned QR**
+
+```kotlin
+PromptPay.parseAnyId(scanned)?.let { println("${it.type} ${it.target} ${it.amount}") }   // AnyIdInfo?
+PromptPay.parseBillPayment(scanned)?.let { println("${it.billerId} ${it.ref1} ${it.amount}") }
+TrueMoney.parse(scanned)                                  // TrueMoneyInfo? (mobile, amount, message)
+
+// Any EMVCo payload: lenient by default, strict = true also requires a valid CRC
+val qr = PromptParse.parse(scanned, strict = true)        // EmvcoQr? - null when invalid
+qr?.value("29", "01")                                     // a value inside a template tag
+qr?.with("54", "99.00")?.encode()                         // edit a tag; the CRC is recomputed
+
+BotBarcode.parse(barcodeText)?.toBillPayment()            // BOT 1D barcode -> bill payment QR
+```
+
+```java
+AnyIdInfo info = PromptPay.parseAnyId(scanned);           // null if not a PromptPay AnyID QR
+EmvcoQr qr = PromptParse.parse(scanned, true);            // null when invalid
+String target = qr.value("29", "01");
+```
+
+A complete, self-checking Java example that calls every public entry point lives in
+[`examples/java`](examples/java) and runs as part of `./gradlew check`.
 
 ### Behavior in brief
 
@@ -81,12 +137,15 @@ Whitespace: strict parsing, slip/TrueMoney readers, `validateCrc` and `fixTrunca
 lenient `PromptParse.parse` trims leading whitespace and trailing line breaks only (a last value may end in a space);
 `BotBarcode.parse` ignores leading whitespace and one trailing `\n` or `\r\n`. Anything returned (for example `EmvcoQr.encode()`) is built from the trimmed text.
 
-### Build
+### Build and contribute
 
 ```
-./gradlew build        # compile, test, API check, 90% coverage gate, Java example
+./gradlew check        # format check, detekt, tests, API check, 90% coverage gate, Java example
+./gradlew spotlessApply  # fix formatting
 ./gradlew apiDump      # refresh core/api/core.api after intentional API changes
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports: [SECURITY.md](SECURITY.md).
 
 ### Credits and license
 
@@ -104,12 +163,15 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 > **ข้อสงวนสิทธิ์:** โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องกับ ธนาคารแห่งประเทศไทย (ธปท.) หรือธนาคารใด ๆ
 > เป็นการ implement ตามรูปแบบที่เปิดเผยต่อสาธารณะเท่านั้น ควรทดสอบ QR ที่สร้างกับธนาคารก่อนใช้งานจริง
 
+**รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) ส่วน Android ยังไม่ได้ทดสอบ
+
 ### เริ่มต้นใช้งาน (Kotlin)
 
 ```kotlin
 val qr = PromptPay.anyId(AnyIdType.MSISDN, "081-222-3333", BigDecimal("30"))
 val parsed = PromptParse.parse(qr, strict = true)   // null ถ้า payload ไม่ถูกต้อง
 PromptPay.parseAnyId(qr)                            // อ่านเบอร์/เลขบัตร/e-wallet และยอดเงินกลับมา
+SlipVerify.parse(scanned)                           // ตรวจ QR บนสลิปก่อนเรียก API ธนาคาร (null ถ้าไม่ใช่สลิป)
 ```
 
 ### เริ่มต้นใช้งาน (Java)
@@ -117,10 +179,12 @@ PromptPay.parseAnyId(qr)                            // อ่านเบอร�
 ```java
 String qr = PromptPay.anyId(AnyIdType.MSISDN, "0812223333", new BigDecimal("30"));
 EmvcoQr parsed = PromptParse.parse(qr, true);
+SlipVerifyInfo slip = SlipVerify.parse(scanned);
 ```
 
 - `SlipVerify` (สลิปมาตรฐาน + TrueMoney) แก้ CRC ที่แอปธนาคารตัดเลข 0 นำหน้าให้อัตโนมัติ ปิดได้ด้วย `crcAutoFix = false`
 - ข้อมูลที่ส่งเข้า *ตัวสร้าง* ไม่ถูกต้อง จะ throw `IllegalArgumentException`; ส่วน *ตัวอ่าน* จะคืนค่า `null` / `false` และไม่ throw
+- ตัวอ่านจะตัดช่องว่างและขึ้นบรรทัดใหม่ที่เครื่องสแกนต่อท้ายให้
 - ความยาว TLV นับเป็นไบต์ UTF-8 และ CRC เป็น CRC-16/CCITT-FALSE ตัวพิมพ์ใหญ่เสมอ
 - ยอดเงินใช้ `BigDecimal` ทศนิยม 2 ตำแหน่ง ปัดแบบ `HALF_UP` และไม่รับค่า <= 0
 - รายละเอียดความแตกต่างจากไลบรารีต้นฉบับ (TypeScript) อยู่ใน [`docs/SPEC_NOTES.md`](docs/SPEC_NOTES.md)
