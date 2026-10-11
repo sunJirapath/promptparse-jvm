@@ -1,12 +1,16 @@
-# promptparse-jvm
+# promptparse-jvm — PromptPay Java & Thai QR Kotlin
 
 [![CI](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.sunjirapath/promptparse)](https://central.sonatype.com/artifact/io.github.sunjirapath/promptparse)
 [![License](https://img.shields.io/github/license/sunJirapath/promptparse-jvm)](LICENSE)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FsunJirapath%2Fpromptparse-jvm%2Fbadges%2Fcoverage.json)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
 
-Parse, generate and validate Thai **PromptPay** / **EMVCo** merchant-presented QR payloads on the JVM.
+**PromptPay Java** and **Thai QR Kotlin** library: parse, generate and validate Thai **PromptPay** / **EMVCo**
+merchant-presented QR payloads on the JVM, including slip pre-checks (**ตรวจสลิป Java**) before calling a bank API.
 Zero runtime dependencies (Kotlin stdlib only), Java-friendly, immutable and thread-safe.
+
+**Features:** PromptPay AnyID (phone / national ID / e-wallet) · PromptPay Bill Payment · TrueMoney QR ·
+Slip Verify / Mini QR (standard + TrueMoney) · BOT 1D barcode → QR · generic EMVCo TLV parser with CRC-16 validation.
 
 > **Disclaimer:** this project is not affiliated with, endorsed by, or sponsored by the Bank of Thailand (BOT)
 > or any bank. It implements publicly documented formats; always verify generated QR codes with your bank
@@ -157,7 +161,9 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## ภาษาไทย
 
-ไลบรารี Kotlin/JVM สำหรับอ่าน สร้าง และตรวจสอบ QR Payload ของ **PromptPay / EMVCo** (แบบ merchant-presented)
+**PromptPay Java / Thai QR Kotlin** — ไลบรารี Kotlin/JVM สำหรับอ่าน สร้าง และตรวจสอบ QR Payload ของ **PromptPay / EMVCo** (แบบ merchant-presented)
+สร้าง QR พร้อมเพย์ด้วย Java/Kotlin และ**ตรวจสลิป Java** (ตรวจ QR บนสลิป Mini QR ก่อนเรียก API ตรวจสอบสลิปของธนาคาร)
+รองรับ AnyID (เบอร์โทร/เลขบัตรประชาชน/e-wallet), Bill Payment, TrueMoney, Slip Verify และ BOT Barcode
 ไม่มี dependency ตอนรันนอกจาก Kotlin stdlib เรียกใช้จาก Java ได้สะดวก โครงสร้างข้อมูลเป็น immutable และ thread-safe
 
 > **ข้อสงวนสิทธิ์:** โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องกับ ธนาคารแห่งประเทศไทย (ธปท.) หรือธนาคารใด ๆ
@@ -165,7 +171,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 **รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) ส่วน Android ยังไม่ได้ทดสอบ
 
-### เริ่มต้นใช้งาน (Kotlin)
+### เริ่มต้นใช้งาน (Kotlin) — Thai QR Kotlin
 
 ```kotlin
 val qr = PromptPay.anyId(AnyIdType.MSISDN, "081-222-3333", BigDecimal("30"))
@@ -174,7 +180,7 @@ PromptPay.parseAnyId(qr)                            // อ่านเบอร�
 SlipVerify.parse(scanned)                           // ตรวจ QR บนสลิปก่อนเรียก API ธนาคาร (null ถ้าไม่ใช่สลิป)
 ```
 
-### เริ่มต้นใช้งาน (Java)
+### เริ่มต้นใช้งาน (Java) — PromptPay Java / ตรวจสลิป Java
 
 ```java
 String qr = PromptPay.anyId(AnyIdType.MSISDN, "0812223333", new BigDecimal("30"));
