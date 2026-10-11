@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+
+- Android support, verified: the main code is checked against the Android API 21 signatures (Animal Sniffer), and
+  instrumented tests (`android-tests`, a separate Gradle build) run on emulators for API 21, 24, 26, 30, 34 and 36.
+
+### Fixed
+
+- `SlipVerify.parse` / `parseTrueMoney` used `HashMap.putIfAbsent` (Android API 24); on Android 5-6 they would have
+  thrown `NoSuchMethodError`. Replaced with plain Kotlin.
+
 ## [0.1.0] - 2026-10-11
 
 ### Added
