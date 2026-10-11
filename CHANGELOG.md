@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-11
+
 ### Added
 
 - `PromptParse`: `parse` (lenient or strict, with sub-tags) and `validateCrc` for EMVCo-style QR payloads;
@@ -38,4 +40,5 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   Every deliberate difference is in `docs/SPEC_NOTES.md` and the README table. Tag order is unchanged from
   promptparse (tag 54 follows tag 58).
 
-[Unreleased]: https://github.com/sunJirapath/promptparse-jvm/commits/main
+[Unreleased]: https://github.com/sunJirapath/promptparse-jvm/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/sunJirapath/promptparse-jvm/releases/tag/v0.1.0
