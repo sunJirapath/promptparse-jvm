@@ -23,6 +23,9 @@ val runExample =
         description = "Runs the Java example; fails the build if any assertion in it fails."
         classpath = sourceSets.main.get().runtimeClasspath
         mainClass = "io.github.sunjirapath.promptparse.example.Example"
+        providers.gradleProperty("testJdk").orNull?.toInt()?.let { jdk ->
+            javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(jdk) }
+        }
     }
 
 tasks.check {

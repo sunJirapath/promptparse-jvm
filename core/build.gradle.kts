@@ -33,8 +33,14 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
+// `-PtestJdk=11|17|21|25` runs the tests on that JDK while the build itself keeps using JDK 17 bytecode.
+val testJdk = providers.gradleProperty("testJdk").orNull?.toInt()
+
 tasks.test {
     useJUnitPlatform()
+    if (testJdk != null) {
+        javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(testJdk) }
+    }
 }
 
 detekt {
