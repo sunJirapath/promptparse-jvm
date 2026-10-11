@@ -1,6 +1,6 @@
 // Runs the library's main behavior on a real Android runtime (ART) via instrumented tests.
-// Opt-in because it needs an Android SDK and an emulator or device:
-//   ./gradlew -Pandroid :android-tests:connectedDebugAndroidTest
+// A separate Gradle build (see settings.gradle.kts) because it needs an Android SDK and an emulator or device:
+//   ./gradlew -p android-tests connectedDebugAndroidTest
 plugins {
     alias(libs.plugins.android.library)
 }
@@ -22,7 +22,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation("io.github.sunjirapath:promptparse")
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.junit4)

@@ -82,7 +82,7 @@ jobs:
           arch: x86_64
           target: default
           disable-animations: true
-          script: ./gradlew -Pandroid :android-tests:connectedDebugAndroidTest --no-daemon --console=plain -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
+          script: ./gradlew -p android-tests connectedDebugAndroidTest --no-daemon --console=plain -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
 
       - name: Upload test reports
         if: ${{ always() }}

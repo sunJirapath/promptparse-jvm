@@ -25,5 +25,4 @@ spotless {
 apiValidation {
     // The Java example is a consumer of the library, not part of its public API.
     ignoredProjects.add("java")
-    if (providers.gradleProperty("android").isPresent) ignoredProjects.add("android-tests")
 }

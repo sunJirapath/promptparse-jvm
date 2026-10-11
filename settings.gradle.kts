@@ -1,13 +1,5 @@
 pluginManagement {
     repositories {
-        // Only needed for the Android test module (-Pandroid); nothing else is fetched from here.
-        google {
-            content {
-                includeGroupByRegex("com.android.*")
-                includeGroupByRegex("com.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
         gradlePluginPortal()
         mavenCentral()
     }
@@ -20,13 +12,6 @@ plugins {
 
 dependencyResolutionManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com.android.*")
-                includeGroupByRegex("com.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
         mavenCentral()
     }
 }
@@ -34,8 +19,3 @@ dependencyResolutionManagement {
 rootProject.name = "promptparse-jvm"
 
 include(":core", ":examples:java")
-
-// Instrumented tests on an Android runtime. Needs an Android SDK, so it is opt-in: ./gradlew -Pandroid ...
-if (providers.gradleProperty("android").isPresent) {
-    include(":android-tests")
-}
