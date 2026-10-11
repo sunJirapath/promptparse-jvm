@@ -4,7 +4,7 @@ kover = "0.9.11"
 binaryCompatibilityValidator = "0.18.2"
 mavenPublish = "0.37.0"
 # jqwik 1.10.x is built against JUnit Platform 1.14.x, so stay on the matching Jupiter 5.14.x line.
-junit = "5.14.4"
+junit = "6.1.3"
 jqwik = "1.10.2"
 spotless = "8.10.4"
 ktlint = "1.8.0"
