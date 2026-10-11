@@ -108,7 +108,7 @@ public class AndroidRuntimeTest {
             .contains("54041.01"));
     assertTrue(
         PromptPay.anyId(AnyIdType.NATID, "1234567890123", new BigDecimal("9999999999.99"))
-            .contains("541399999999999.99"));
+            .contains("54139999999999.99"));
     for (String bad : Arrays.asList("0", "-1", "0.004", "1E+999999999", "1E-999999999")) {
       try {
         PromptPay.anyId(AnyIdType.MSISDN, "0812223333", new BigDecimal(bad));
