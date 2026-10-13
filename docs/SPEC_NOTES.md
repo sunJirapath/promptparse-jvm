@@ -232,3 +232,16 @@ These corrections supersede the earlier reference-only CRC check and factory rep
   must match their digit count (MSISDN also needs `0066`); biller IDs must be 13/15 digits; TrueMoney requires fixed
   zero padding and a local `0` prefix. Checks are structural, not bank/phone registration, national-ID checksum
   or payment-authenticity checks. Default extraction remains permissive.
+
+## 13. Opt-in ambiguity checks and reader consistency
+
+- `validateFields` rejects duplicate top-level fields `00`, `01`, `29`, `30`, `53`, `54`, `58`, `62`;
+  duplicate account fields `00`-`04`; duplicate reference `62/07`; mixed tags `29` and `30`; and multiple
+  recipient types in tag `29` (including reserved type `04`). Unknown extension IDs remain permissive.
+- Slip readers retain their original CRC-repair signatures and Kotlin default bridges. New overloads add
+  `validateFields`, checking 3 ASCII bank digits or 8 ASCII date digits, plus uniqueness of root/country tags
+  and known fields `00`-`04`. Date checks match generation: shape only, not calendar validity.
+- BOT barcode field validation requires exactly 15 ASCII biller digits. Default parsing remains permissive.
+- Input-size limits are caller policy, documented separately from format validation; no generic TLV limit is imposed.
+- Recorded synthetic fixtures `R5328` (CRC `9104`), `Z15389` (CRC `0000`) and a 9-baht payment (CRC `05D8`)
+  replace runtime searches while retaining exact payload and checksum assertions.

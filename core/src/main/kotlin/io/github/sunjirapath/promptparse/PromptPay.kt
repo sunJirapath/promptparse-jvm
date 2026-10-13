@@ -81,6 +81,7 @@ public object PromptPay {
      * [validateFields] additionally requires a recipient in its documented wire shape, initiation
      * method 11/12, currency 764, country TH, and a positive amount of at most 2 decimals within
      * the generator's limits when present. National ID check digits and bank registration are not checked.
+     * Duplicate critical fields and multiple recipient types/account templates are rejected.
      */
     @JvmStatic
     @JvmOverloads
@@ -130,9 +131,23 @@ public object PromptPay {
         return Amounts.parse(text)?.let(::Amount)
     }
 
-    internal fun hasValidPaymentFields(qr: EmvcoQr): Boolean =
-        qr.value("01") in listOf("11", "12") && qr.value("53") == "764" && qr.value("58") == "TH" &&
+    internal fun hasValidPaymentFields(qr: EmvcoQr): Boolean {
+        if (!hasUnambiguousPaymentFields(qr)) return false
+        return qr.value("01") in listOf("11", "12") && qr.value("53") == "764" && qr.value("58") == "TH" &&
             (qr.value("54")?.let(Amounts::isValid) ?: true)
+    }
+
+    private fun hasUnambiguousPaymentFields(qr: EmvcoQr): Boolean {
+        if (!hasUniqueTagIds(qr.tags, "00", "01", "29", "30", "53", "54", "58", "62")) return false
+        val additional = Tlv.decode(qr.value("62") ?: "", strict = true)
+        if (additional == null || !hasUniqueTagIds(additional, "07")) return false
+        val account = qr.tag("29") ?: qr.tag("30") ?: return false
+        if (!hasUniqueTagIds(account.subTags, "00", "01", "02", "03", "04")) return false
+        if (account.id == "29") {
+            return qr.tag("30") == null && account.subTags.count { it.id in listOf("01", "02", "03", "04") } == 1
+        }
+        return true
+    }
 
     private fun isValidTarget(
         type: AnyIdType,

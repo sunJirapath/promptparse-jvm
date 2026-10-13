@@ -13,11 +13,17 @@ spotless {
         ktlint(ktlintVersion)
     }
     kotlinGradle {
-        target("*.gradle.kts", "core/*.gradle.kts", "examples/**/*.gradle.kts", "android-tests/*.gradle.kts")
+        target(
+            "*.gradle.kts",
+            "core/*.gradle.kts",
+            "examples/**/*.gradle.kts",
+            "android-tests/*.gradle.kts",
+            "artifact-tests/*.gradle.kts",
+        )
         ktlint(ktlintVersion)
     }
     java {
-        target("examples/**/*.java", "android-tests/**/*.java")
+        target("examples/**/*.java", "android-tests/**/*.java", "artifact-tests/**/*.java")
         googleJavaFormat(libs.versions.googleJavaFormat.get())
     }
 }

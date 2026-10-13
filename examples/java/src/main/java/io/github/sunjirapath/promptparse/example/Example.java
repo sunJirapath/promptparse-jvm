@@ -136,6 +136,8 @@ public final class Example {
     check(tmInfo.getTransactionId(), "TXN0001234567");
     check(tmInfo.getDate(), "25012024");
     check(SlipVerify.parseTrueMoney(tmSlip, false).getEventType(), "P2P");
+    check(SlipVerify.parseTrueMoney(tmSlip, false, true).getEventType(), "P2P");
+    check(SlipVerify.parse(SlipVerify.build("002", "REF"), false, true).getSendingBank(), "002");
     check(SlipVerify.parse("not a slip", true) == null, true);
 
     // TrueMoney QR with every argument, and its reader.
@@ -156,6 +158,7 @@ public final class Example {
     check(barcodeInfo.getRef1(), "123456789012");
     check(barcodeInfo.getRef2(), "670429");
     check(barcodeInfo.getAmount().toPlainString(), "3649.22");
+    check(BotBarcode.parse(barcode, true).getBillerId(), "099400016550100");
     check(
         barcodeInfo.toBillPayment(),
         PromptPay.billPayment(

@@ -38,9 +38,14 @@ public object BotBarcode {
     /**
      * Reads a barcode (leading whitespace and one trailing `\n` or `\r\n` from the scanner are ignored); `null` unless it starts with `|`, has exactly four `\r`-separated fields, a biller ID of at
      * least 15 characters, a non-empty ref1 and an amount that is all digits (whole satang). Never throws.
+     * [validateFields] additionally requires the biller ID to be exactly 15 ASCII digits.
      */
     @JvmStatic
-    public fun parse(payload: String): BotBarcodeInfo? {
+    @JvmOverloads
+    public fun parse(
+        payload: String,
+        validateFields: Boolean = false,
+    ): BotBarcodeInfo? {
         val text = payload.trimStart().removeSuffix("\r\n").removeSuffix("\n")
         if (!text.startsWith("|")) return null
         val parts = text.substring(1).split('\r')
@@ -49,6 +54,7 @@ public object BotBarcode {
         val ref1 = parts[1]
         val amountField = parts[3]
         if (billerId.length < BILLER_ID_LENGTH || ref1.isEmpty()) return null
+        if (validateFields && (billerId.length != BILLER_ID_LENGTH || !billerId.all(Tlv::isDigit))) return null
         val validAmount = amountField.length in 1..MAX_SATANG_DIGITS && amountField.all(Tlv::isDigit)
         if (!validAmount) return null
         val satang = BigInteger(amountField)

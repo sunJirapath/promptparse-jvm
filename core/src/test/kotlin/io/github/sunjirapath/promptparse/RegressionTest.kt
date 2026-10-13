@@ -38,29 +38,15 @@ class RegressionTest {
 
     @Test
     fun `a CRC that spells the tag header is found, lastIndexOf-style search got it wrong`() {
-        val ref =
-            (0 until 2_000_000).asSequence().map { "R$it" }.first {
-                SlipVerify
-                    .build(
-                        "014",
-                        it,
-                    ).endsWith("91049104")
-            }
-        assertEquals(ref, SlipVerify.parse(SlipVerify.build("014", ref))!!.transRef)
+        assertEquals(CRC_HEADER_COLLISION_SLIP, SlipVerify.build("014", "R5328"))
+        assertEquals("R5328", SlipVerify.parse(CRC_HEADER_COLLISION_SLIP)!!.transRef)
     }
 
     @Test
     fun `an all-zero CRC cannot be shortened to nothing`() {
         // the property test once dropped all four digits of 0000 and expected a repair
-        val ref =
-            (0 until 2_000_000).asSequence().map { "Z$it" }.first {
-                SlipVerify
-                    .build(
-                        "014",
-                        it,
-                    ).endsWith("91040000")
-            }
-        val wire = SlipVerify.build("014", ref)
+        assertEquals(ZERO_CRC_SLIP, SlipVerify.build("014", "Z15389"))
+        val wire = ZERO_CRC_SLIP
         assertNotNull(SlipVerify.parse(wire.dropLast(1)))
         assertNotNull(SlipVerify.parse(wire.dropLast(3)))
         assertNull(SlipVerify.parse(wire.dropLast(4)))
@@ -175,5 +161,13 @@ class RegressionTest {
             assertEquals(mobile, TrueMoney.parse(payload)!!.mobile)
             assertEquals(mobile, TrueMoney.parse(payload, validateFields = true)!!.mobile)
         }
+    }
+
+    @Test
+    fun `field validation rejects an ambiguous amount while default extraction keeps the first`() {
+        val qr = PromptParse.parse(PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal("30")))!!
+        val payload = EmvcoQr(qr.tags + Tag("54", "99.00")).encode()
+        assertEquals(BigDecimal("30.00"), PromptPay.parseAnyId(payload)!!.amount)
+        assertNull(PromptPay.parseAnyId(payload, validateFields = true))
     }
 }

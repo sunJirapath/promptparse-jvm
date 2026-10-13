@@ -113,6 +113,9 @@ On the current development branch (not yet in 0.1.0), payment readers optionally
 PromptPay.parseAnyId(scanned, validateFields = true)
 PromptPay.parseBillPayment(scanned, validateFields = true)
 TrueMoney.parse(scanned, validateFields = true)
+SlipVerify.parse(scanned, validateFields = true)           // crcAutoFix remains true
+SlipVerify.parseTrueMoney(scanned, crcAutoFix = false, validateFields = true)
+BotBarcode.parse(scanned, validateFields = true)
 ```
 
 Java: `PromptPay.parseAnyId(scanned, true)` (and likewise for the other readers).
@@ -120,6 +123,11 @@ This requires initiation method `11`/`12`, currency `764`, country `TH`, the doc
 and, when present, an amount > 0 with at most 2 decimals, at most 10 integer digits and at most 13 characters.
 TrueMoney also checks fixed zero padding. It does not check national-ID check digits, phone allocation,
 bank registration or payment authenticity. Existing one-argument calls retain permissive field extraction.
+Payment readers reject duplicate critical tags, duplicate known account/reference fields, mixed AnyID/Bill Payment
+templates and multiple recipient types when validation is enabled. Unknown extension fields remain permissive.
+Slip readers check 3-digit bank codes or 8-digit dates (shape only), and reject duplicate known fields/root tags.
+Barcode validation requires exactly 15 ASCII biller digits. Java slip calls use three arguments:
+`SlipVerify.parse(scanned, true, true)` and `SlipVerify.parseTrueMoney(scanned, false, true)`.
 
 ```java
 AnyIdInfo info = PromptPay.parseAnyId(scanned);           // null if not a PromptPay AnyID QR
@@ -144,6 +152,21 @@ Development branch fixes (not yet in 0.1.0): getter lists are unmodifiable in Ja
 leave the value opaque); TrueMoney parsing preserves all ten local-number digits; strict parsing requires a final
 CRC tag. These changes are listed under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
 
+### Untrusted input size
+
+The generic parser has no payload-size limit; memory and work grow with the input. Set an input limit in scanner
+and API integrations **before parsing**, and cap HTTP/body sizes before decoding them into a string.
+For example, an application may choose a 4,096-character limit:
+
+```kotlin
+val info = scanned.takeIf { it.length <= 4096 }
+    ?.let { PromptPay.parseAnyId(it, validateFields = true) }
+    ?: return reject("invalid or oversized payment QR")
+```
+
+This is an example application policy, not a QR specification limit. Choose a limit for the formats your
+integration accepts; long barcode references and generic TLV data may require a different policy.
+
 ### Differences from promptparse
 
 Behavior was ported from [promptparse](https://github.com/maythiwat/promptparse); where this library deliberately differs:
@@ -158,7 +181,7 @@ Behavior was ported from [promptparse](https://github.com/maythiwat/promptparse)
 | Invalid input | generators do not validate; parsers return `null` | generators throw `IllegalArgumentException`; parsers return `null`/`false` and never throw |
 | Slip CRC | repaired if shortened; `lastIndexOf("9104")` can misplace the CRC | repaired (1-3 digits, `crcAutoFix = false` disables); the CRC is located from the end |
 | Strict payment CRC envelope (development branch) | checks the last 4 characters only | requires exactly one CRC tag `63`, length `04`, as the last decoded tag |
-| Payment field validation (development branch) | permissive extraction | permissive by default; `validateFields = true` checks payment fields and recipient/biller shape |
+| Field validation (development branch) | permissive extraction | permissive by default; `validateFields = true` checks payment/slip/barcode field shapes and rejects ambiguous critical fields |
 | Whitespace | not handled | surrounding spaces, tabs and line breaks from scanners are ignored (see below) |
 
 Whitespace: strict parsing, slip/TrueMoney readers, `validateCrc` and `fixTruncatedCrc` trim spaces, tabs, `\r` and `\n` on both sides;
@@ -168,12 +191,17 @@ lenient `PromptParse.parse` trims leading whitespace and trailing line breaks on
 ### Build and contribute
 
 ```
-./gradlew check        # format check, detekt, tests, API check, 90% coverage gate, Java example
+./gradlew check        # format, detekt, tests, API, 90% line/branch coverage, examples, Maven artifact consumer
 ./gradlew spotlessApply  # fix formatting
 ./gradlew apiDump      # refresh core/api/core.api after intentional API changes
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports: [SECURITY.md](SECURITY.md).
+
+`artifact-tests` is a standalone Java build that resolves the generated publication's JAR and POM from a
+temporary repository under `core/build`. It reuses the Java example, verifies that the library was loaded
+from a JAR and that the POM supplies the Kotlin stdlib, and runs on the selected test JDK. It does not use
+project dependencies, change your local Maven repository, sign artifacts, or publish a release.
 
 ### Credits and license
 

@@ -125,18 +125,10 @@ class SlipVerifyTest {
 
     @Test
     fun `a CRC whose digits spell the tag header is still found`() {
-        // search for a slip whose CRC is literally 9104 so the payload ends in 91049104
-        val ref =
-            (0 until 2_000_000).asSequence().map { "R$it" }.first {
-                SlipVerify
-                    .build(
-                        "014",
-                        it,
-                    ).endsWith("91049104")
-            }
-        val wire = SlipVerify.build("014", ref)
-        assertEquals(SlipVerifyInfo("014", ref), SlipVerify.parse(wire))
-        assertEquals(SlipVerifyInfo("014", ref), SlipVerify.parse(wire, crcAutoFix = false))
+        val wire = CRC_HEADER_COLLISION_SLIP
+        assertEquals(wire, SlipVerify.build("014", "R5328"))
+        assertEquals(SlipVerifyInfo("014", "R5328"), SlipVerify.parse(wire))
+        assertEquals(SlipVerifyInfo("014", "R5328"), SlipVerify.parse(wire, crcAutoFix = false))
     }
 
     // --- TrueMoney --------------------------------------------------------------------------
@@ -206,10 +198,8 @@ class SlipVerifyTest {
 
     @Test
     fun `fixTruncatedCrc repairs a payment QR`() {
-        val full =
-            (1..400)
-                .map { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", java.math.BigDecimal(it)) }
-                .first { it.takeLast(4).startsWith("0") }
+        val full = LEADING_ZERO_CRC_PAYMENT
+        assertEquals(full, PromptPay.anyId(AnyIdType.MSISDN, "0812223333", java.math.BigDecimal("9")))
         val shortened = full.dropLast(4) + full.takeLast(3)
         assertEquals(full, PromptParse.fixTruncatedCrc(shortened))
         assertNull(PromptParse.parse(shortened, strict = true), "parse itself never repairs")

@@ -21,9 +21,10 @@ cd promptparse-jvm
 | `detekt` | static analysis, config in `config/detekt/detekt.yml` |
 | `test` | JUnit 5 + jqwik property tests |
 | `apiCheck` | fails if the public API differs from `core/api/core.api` |
-| `koverVerify` | fails if line coverage of `core` drops under 90% |
+| `koverVerify` | fails if line or branch coverage of `core` drops under 90% |
 | `runExample` | runs the Java example, which asserts its own output |
 | `verifyJarNotices` | checks that binary, sources and documentation JARs contain the complete `LICENSE` and `NOTICE` |
+| `artifactSmokeTest` | compiles/runs a standalone Java consumer of the generated Maven JAR/POM, with transitive stdlib resolution |
 
 Useful extras:
 
@@ -45,6 +46,11 @@ emulator or device, so they run in CI (`android.yml`) rather than in `check`:
 Rules that CI enforces: formatting, zero detekt findings (no baseline), zero compiler warnings in main sources,
 no public API change without an updated `core.api` (review that diff!), and no runtime dependency besides the
 Kotlin stdlib. Tooling dependencies are build-time only.
+
+`artifactSmokeTest` stages the real JAR and generated POM in `core/build/artifact-smoke-repository` and runs
+the separate `artifact-tests` build. It reuses the Java example without any library project dependency.
+`./gradlew :core:artifactSmokeTest -PtestJdk=11` runs it alone; no Maven CLI, signing credentials or publishing
+access is needed. CRC regression vectors are fixed literals in `CrcFixtures.kt`; avoid runtime searches for them.
 
 ## Commit style
 

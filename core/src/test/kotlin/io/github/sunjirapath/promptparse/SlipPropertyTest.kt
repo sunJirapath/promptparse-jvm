@@ -68,11 +68,14 @@ class SlipPropertyTest {
     ) {
         SlipVerify.parse(s)
         SlipVerify.parse(s, crcAutoFix = false)
+        SlipVerify.parse(s, validateFields = true)
         SlipVerify.parseTrueMoney(s)
+        SlipVerify.parseTrueMoney(s, validateFields = true)
         TrueMoney.parse(s)
         TrueMoney.parse(s, validateFields = true)
         PromptParse.fixTruncatedCrc(s)
         val barcode = BotBarcode.parse(s)
+        BotBarcode.parse(s, validateFields = true)
         if (barcode != null) {
             try {
                 barcode.toBillPayment()
