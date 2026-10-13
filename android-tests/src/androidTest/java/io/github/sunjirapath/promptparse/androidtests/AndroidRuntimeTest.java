@@ -170,6 +170,19 @@ public class AndroidRuntimeTest {
   }
 
   @Test
+  public void firstValuesStartingWithLineTerminatorsRoundTrip() {
+    for (String terminator : Arrays.asList("\n", "\r", "\u2028", "\u2029")) {
+      for (String value : Arrays.asList(terminator, terminator + "text")) {
+        EmvcoQr qr = new EmvcoQr(Arrays.asList(Tag.of("00", value)));
+        String payload = qr.encode();
+        assertEquals(qr, PromptParse.parse(payload, true));
+        assertEquals(qr, PromptParse.parse(payload));
+        assertEquals(payload, PromptParse.parse(payload).encode());
+      }
+    }
+  }
+
+  @Test
   public void emojiAndLoneSurrogatesRoundTrip() {
     String emoji = "a😀b";
     EmvcoQr qr = new EmvcoQr(Arrays.asList(Tag.of("59", emoji), Tag.of("60", "x\uD800y")));

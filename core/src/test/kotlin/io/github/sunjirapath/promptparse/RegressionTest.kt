@@ -12,6 +12,19 @@ import kotlin.test.assertNull
 /** One test per bug found and fixed while building this library. The name says what went wrong. */
 class RegressionTest {
     @Test
+    fun `a first tag value starting with a line terminator round trips`() {
+        for (terminator in listOf("\n", "\r", "\u2028", "\u2029")) {
+            for (value in listOf(terminator, terminator + "text")) {
+                val qr = EmvcoQr(listOf(Tag.of("00", value)))
+                val payload = qr.encode()
+                assertEquals(qr, PromptParse.parse(payload, strict = true))
+                assertEquals(qr, PromptParse.parse(payload))
+                assertEquals(payload, PromptParse.parse(payload)!!.encode())
+            }
+        }
+    }
+
+    @Test
     fun `tiny and huge BigDecimal exponents throw IllegalArgumentException, not ArithmeticException`() {
         // setScale(2) on 1E-999999999 overflowed BigInteger before the magnitude pre-check existed
         for (a in listOf("1E-999999999", "1E+999999999", "-1E+999999999", "0E+999999999")) {

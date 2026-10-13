@@ -2,6 +2,8 @@ package io.github.sunjirapath.promptparse
 
 /** Entry point for parsing and checking EMVCo-style QR payloads. */
 public object PromptParse {
+    private const val MIN_PARSE_LENGTH = 5
+
     /**
      * Parses any EMVCo-compatible QR payload.
      *
@@ -26,7 +28,8 @@ public object PromptParse {
         subTags: Boolean = true,
     ): EmvcoQr? {
         val text = if (strict) Tlv.trimScan(payload) else Tlv.trimScanLenient(payload)
-        if (!Tlv.looksLikeTlv(text)) return null
+        // Let the decoder validate the header; a first value may start with a line terminator.
+        if (text.length < MIN_PARSE_LENGTH) return null
         if (strict && !validateCrc(text)) return null
         val decoded = Tlv.decode(text, strict) ?: return null
         if (decoded.isEmpty()) return null

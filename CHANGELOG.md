@@ -19,6 +19,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - All generated JARs include `META-INF/LICENSE` and `META-INF/NOTICE`; `check` verifies binary, sources and documentation JARs.
 - Installation examples use the published Maven Central version `0.1.0`.
 - CRC edge-case regression tests use recorded vectors instead of repeatedly searching for suitable inputs.
+- Generic parsing accepts a first tag value starting with a line terminator, preserving encoded QR round trips.
 
 ### Added
 
