@@ -34,6 +34,14 @@ Useful extras:
 ./gradlew :core:koverHtmlReport  # coverage report in core/build/reports/kover
 ```
 
+Android: `./gradlew :core:animalsnifferMain` checks the main code against the Android API 21 signatures and is part of
+`check`. The instrumented tests live in `android-tests/`, a separate Gradle build that needs an Android SDK and an
+emulator or device, so they run in CI (`android.yml`) rather than in `check`:
+
+```bash
+./gradlew -p android-tests connectedDebugAndroidTest
+```
+
 Rules that CI enforces: formatting, zero detekt findings (no baseline), zero compiler warnings in main sources,
 no public API change without an updated `core.api` (review that diff!), and no runtime dependency besides the
 Kotlin stdlib. Tooling dependencies are build-time only.

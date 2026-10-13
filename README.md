@@ -42,7 +42,10 @@ dependencies {
 
 **Supported platforms:** Java 11 or newer (bytecode target 11, compile-checked with `-Xjdk-release=11`); CI runs the
 tests on JDK 11, 17, 21 and 25 on Linux and on JDK 21 on Windows. The only runtime dependency is the Kotlin stdlib.
-Android has **not been tested**; nothing in the library needs more than Java 11 APIs, but no Android API level is promised.
+**Android (development branch, not yet in 0.1.0): API 21 (5.0) and newer.** The main code is checked against the Android API 21 signatures (Animal Sniffer) and
+the test vectors, Thai/emoji handling, locale independence and fuzz tests run on emulators for API 21, 24, 26, 30, 34
+and 36 in CI (`android-tests`, [workflow](.github/workflows/android.yml)). No core-library desugaring is needed. Not
+verified: R8/ProGuard minification of an app that uses the library (it uses no reflection, so none should be needed).
 
 The library produces and reads payload *strings*. Turning a string into a QR image is up to you
 (for example ZXing or `qrcode-kotlin`).
@@ -190,7 +193,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 > **ข้อสงวนสิทธิ์:** โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องกับ ธนาคารแห่งประเทศไทย (ธปท.) หรือธนาคารใด ๆ
 > เป็นการ implement ตามรูปแบบที่เปิดเผยต่อสาธารณะเท่านั้น ควรทดสอบ QR ที่สร้างกับธนาคารก่อนใช้งานจริง
 
-**รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) ส่วน Android ยังไม่ได้ทดสอบ
+**รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) และ Android API 21 ขึ้นไปบน development branch (ยังไม่อยู่ใน `0.1.0`; ทดสอบบน emulator API 21, 24, 26, 30, 34, 36)
 
 ### เริ่มต้นใช้งาน (Kotlin) — Thai QR Kotlin
 

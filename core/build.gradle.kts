@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.detekt)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.animalsniffer)
 }
 
 kotlin {
@@ -31,6 +32,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 dependencies {
+    signature("${libs.android.signature.get()}@signature")
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotlin.test.junit5)
@@ -136,4 +138,10 @@ mavenPublishing {
             developerConnection = "scm:git:ssh://git@github.com/sunJirapath/promptparse-jvm.git"
         }
     }
+}
+
+// Fails if the main code calls a JDK/Android API that does not exist on Android API 21.
+// Kotlin stdlib and annotations are not part of the Android signature, so they are skipped.
+animalsniffer {
+    ignore("kotlin.*", "org.jetbrains.*")
 }
