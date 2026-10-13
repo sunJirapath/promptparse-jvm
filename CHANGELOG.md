@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+
+- **Maven coordinates moved** to `io.github.sunjirapath.promptparse:promptparse` (the groupId now matches the Java
+  package). The API is unchanged. Versions 0.1.0 and 0.1.1 remain on Maven Central under
+  `io.github.sunjirapath:promptparse`; Maven Central releases cannot be renamed or removed.
+
 ## [0.1.1] - 2026-10-13
 
 ### Fixed

@@ -38,6 +38,6 @@ rootProject.name = "android-tests"
 // Use the library from this checkout instead of Maven Central.
 includeBuild("..") {
     dependencySubstitution {
-        substitute(module("io.github.sunjirapath:promptparse")).using(project(":core"))
+        substitute(module("io.github.sunjirapath.promptparse:promptparse")).using(project(":core"))
     }
 }

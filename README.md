@@ -1,7 +1,7 @@
 # promptparse-jvm — PromptPay Java & Thai QR Kotlin
 
 [![CI](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.sunjirapath/promptparse)](https://central.sonatype.com/artifact/io.github.sunjirapath/promptparse)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.sunjirapath.promptparse/promptparse)](https://central.sonatype.com/artifact/io.github.sunjirapath.promptparse/promptparse)
 [![License](https://img.shields.io/github/license/sunJirapath/promptparse-jvm)](LICENSE)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FsunJirapath%2Fpromptparse-jvm%2Fbadges%2Fcoverage.json)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
 
@@ -22,21 +22,25 @@ Slip Verify / Mini QR (standard + TrueMoney) · BOT 1D barcode → QR · generic
 
 ### Install
 
-Latest version: **0.1.1**, available on Maven Central.
+Latest version: **0.1.2** (once released; see the note below), available on Maven Central.
+
+> **Coordinates changed in 0.1.2.** The groupId is now `io.github.sunjirapath.promptparse` (it matches the Java
+> package). Versions 0.1.0 and 0.1.1 stay on Maven Central under the old `io.github.sunjirapath:promptparse`;
+> change the dependency below when you upgrade. The API is the same.
 
 ```kotlin
 // Gradle (Kotlin DSL)
 dependencies {
-    implementation("io.github.sunjirapath:promptparse:0.1.1")
+    implementation("io.github.sunjirapath.promptparse:promptparse:0.1.2")
 }
 ```
 
 ```xml
 <!-- Maven -->
 <dependency>
-  <groupId>io.github.sunjirapath</groupId>
+  <groupId>io.github.sunjirapath.promptparse</groupId>
   <artifactId>promptparse</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
 </dependency>
 ```
 

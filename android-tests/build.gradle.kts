@@ -22,7 +22,7 @@ android {
 }
 
 dependencies {
-    implementation("io.github.sunjirapath:promptparse")
+    implementation("io.github.sunjirapath.promptparse:promptparse")
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.junit4)
