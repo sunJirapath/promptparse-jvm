@@ -117,7 +117,7 @@ public object SlipVerify {
         val root = Tlv.decode(body, strict = true)?.firstOrNull { it.id == "00" } ?: return null
         val subTags = Tlv.decode(root.value, strict = true) ?: return null
         val fields = HashMap<String, String>()
-        for (t in subTags) fields.putIfAbsent(t.id, t.value)
+        for (t in subTags) if (t.id !in fields) fields[t.id] = t.value
         return fields
     }
 }
