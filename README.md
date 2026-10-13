@@ -22,7 +22,7 @@ Slip Verify / Mini QR (standard + TrueMoney) · BOT 1D barcode → QR · generic
 
 ### Install
 
-Latest version: **0.1.2** (once released; see the note below), available on Maven Central.
+Latest version: **0.1.2**, available on Maven Central.
 
 > **Coordinates changed in 0.1.2.** The groupId is now `io.github.sunjirapath.promptparse` (it matches the Java
 > package). Versions 0.1.0 and 0.1.1 stay on Maven Central under the old `io.github.sunjirapath:promptparse`;
