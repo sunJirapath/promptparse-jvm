@@ -107,11 +107,18 @@ public final class Example {
     check(qr.value("59"), "Shop");
     check(qr.value("29", "00"), "ab");
     check(PromptParse.parse(qr.encode(), true).equals(qr), true);
+    expectUnmodifiable(() -> qr.getTags().clear());
+    expectUnmodifiable(() -> template.getSubTags().clear());
+    expectUnmodifiable(() -> viaOf.getSubTags().clear());
 
     // PromptPay: every overload family and the readers.
     check(AnyIdType.values().length, 3);
     String eWallet = PromptPay.anyId(AnyIdType.EWALLETID, "140000812223333");
     check(PromptPay.parseAnyId(eWallet).getType(), AnyIdType.EWALLETID);
+    check(PromptPay.parseAnyId(eWallet, true).getType(), AnyIdType.EWALLETID);
+    String usd = PromptParse.parse(eWallet, true).with("53", "840").encode();
+    check(PromptPay.parseAnyId(usd) != null, true);
+    check(PromptPay.parseAnyId(usd, true) == null, true);
     String bill = PromptPay.billPayment("0112233445566", "REF1");
     String billFull =
         PromptPay.billPayment("0112233445566", "REF1", "REF2", new BigDecimal("1.005"), "SCB");
@@ -120,6 +127,7 @@ public final class Example {
     check(info.getRef3(), "SCB");
     check(info.getAmount().toPlainString(), "1.01");
     check(PromptPay.parseBillPayment(bill).getAmount() == null, true);
+    check(PromptPay.parseBillPayment(bill, true).getBillerId(), "0112233445566");
 
     // SlipVerify, TrueMoney variant.
     String tmSlip = SlipVerify.buildTrueMoney("P2P", "TXN0001234567", "25012024");
@@ -136,6 +144,7 @@ public final class Example {
     check(tmQr.getMobile(), "0801111111");
     check(tmQr.getMessage(), "Hello World!");
     check(tmQr.getAmount().toPlainString(), "10.05");
+    check(TrueMoney.parse(trueMoney, true).getMobile(), "0801111111");
 
     // BotBarcode: build with all arguments, parse, convert.
     String barcode =
@@ -151,6 +160,15 @@ public final class Example {
         barcodeInfo.toBillPayment(),
         PromptPay.billPayment(
             "099400016550100", "123456789012", "670429", new BigDecimal("3649.22")));
+  }
+
+  private static void expectUnmodifiable(Runnable mutation) {
+    try {
+      mutation.run();
+      throw new AssertionError("expected UnsupportedOperationException");
+    } catch (UnsupportedOperationException expected) {
+      // Getter lists are unmodifiable in Java as well as Kotlin.
+    }
   }
 
   private static void check(Object actual, Object expected) {

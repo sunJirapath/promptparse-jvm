@@ -218,6 +218,34 @@ public class AndroidRuntimeTest {
   }
 
   @Test
+  public void auditContractsAndFieldValidation() {
+    EmvcoQr qr = PromptParse.parse(DYNAMIC_QR, true);
+    try {
+      qr.getTags().clear();
+      fail("tag list must be unmodifiable");
+    } catch (UnsupportedOperationException expected) {
+      // ok
+    }
+    try {
+      qr.tag("29").getSubTags().clear();
+      fail("sub-tag list must be unmodifiable");
+    } catch (UnsupportedOperationException expected) {
+      // ok
+    }
+    assertNotNull(PromptPay.parseAnyId(DYNAMIC_QR, true));
+    assertNotNull(PromptPay.parseBillPayment(BILL_REF3, true));
+    assertNotNull(TrueMoney.parse(TRUEMONEY_QR_FULL, true));
+    assertNull(PromptPay.parseAnyId(qr.with("53", "840").encode(), true));
+    assertEquals("0012345678", TrueMoney.parse(TrueMoney.build("0012345678"), true).getMobile());
+    Tag emptyChild = Tag.template("29", Arrays.asList(new Tag("00", "AID"), new Tag("01", "")));
+    EmvcoQr templateQr = new EmvcoQr(Arrays.asList(emptyChild));
+    assertEquals(templateQr, PromptParse.parse(templateQr.encode(), true));
+    String embeddedCrc =
+        "00020101021229370016A0000006770101110113006681222333353037645802TH540530.005905X346A";
+    assertNull(PromptParse.parse(embeddedCrc, true));
+  }
+
+  @Test
   public void randomInputNeverThrows() {
     Random random = new Random(42);
     String alphabet = "0123456789ABCDEFabcdef|\r\n ก😀\uD800";
@@ -234,9 +262,12 @@ public class AndroidRuntimeTest {
       PromptParse.fixTruncatedCrc(s);
       PromptPay.parseAnyId(s);
       PromptPay.parseBillPayment(s);
+      PromptPay.parseAnyId(s, true);
+      PromptPay.parseBillPayment(s, true);
       SlipVerify.parse(s);
       SlipVerify.parseTrueMoney(s, false);
       TrueMoney.parse(s);
+      TrueMoney.parse(s, true);
       BotBarcode.parse(s);
     }
   }

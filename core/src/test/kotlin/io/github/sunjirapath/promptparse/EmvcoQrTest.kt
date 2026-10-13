@@ -62,6 +62,22 @@ class EmvcoQrTest {
         val q = EmvcoQr(source)
         source.add(Tag("01", "11"))
         assertEquals(1, q.tags.size)
+        for (size in listOf(2, 1, 0)) {
+            val tags = List(size) { Tag("00", "01") }
+            val view = EmvcoQr(tags).tags as MutableList<Tag>
+            assertFailsWith<UnsupportedOperationException> { view.add(Tag("01", "11")) }
+            assertFailsWith<UnsupportedOperationException> { view.clear() }
+            if (size > 0) {
+                assertFailsWith<UnsupportedOperationException> { view[0] = Tag("01", "11") }
+            }
+            val value = Tlv.encode(tags)
+            val source = tags.toMutableList()
+            val template = Tag("29", value, source)
+            source.clear()
+            assertEquals(tags, template.subTags)
+            assertFailsWith<UnsupportedOperationException> { (template.subTags as MutableList<Tag>).clear() }
+            assertEquals(value, template.value)
+        }
     }
 
     @Test

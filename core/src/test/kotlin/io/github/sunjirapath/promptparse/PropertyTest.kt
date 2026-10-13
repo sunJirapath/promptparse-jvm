@@ -109,6 +109,8 @@ class PropertyTest {
         PromptParse.validateCrc(s)
         PromptPay.parseAnyId(s)
         PromptPay.parseBillPayment(s)
+        PromptPay.parseAnyId(s, validateFields = true)
+        PromptPay.parseBillPayment(s, validateFields = true)
     }
 
     @Property(tries = 2000)

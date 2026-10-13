@@ -6,15 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-### Added
-
-- Android support, verified: the main code is checked against the Android API 21 signatures (Animal Sniffer), and
-  instrumented tests (`android-tests`, a separate Gradle build) run on emulators for API 21, 24, 26, 30, 34 and 36.
-
 ### Fixed
 
 - `SlipVerify.parse` / `parseTrueMoney` used `HashMap.putIfAbsent` (Android API 24); on Android 5-6 they would have
   thrown `NoSuchMethodError`. Replaced with plain Kotlin.
+- `EmvcoQr.tags` and `Tag.subTags` are defensive, unmodifiable copies, including for Java consumers.
+- Strict payment parsing requires exactly one final CRC tag `63` with length `04`; a checksum inside another
+  tag's value or a duplicate CRC tag is rejected. Lenient parsing is unchanged.
+- `Tag.template` derives children using the same one-level rule as parsing, preserving round-trip equality
+  for nested templates and templates containing empty children. The encoded value is preserved.
+- TrueMoney parsing removes only fixed padding, preserving all ten local-number digits including leading zeros.
+- All generated JARs include `META-INF/LICENSE` and `META-INF/NOTICE`; `check` verifies binary, sources and documentation JARs.
+- Installation examples use the published Maven Central version `0.1.0`.
+
+### Added
+
+- Android support, verified: the main code is checked against the Android API 21 signatures (Animal Sniffer), and
+  instrumented tests (`android-tests`, a separate Gradle build) run on emulators for API 21, 24, 26, 30, 34 and 36.
+- Optional `validateFields` on AnyID, Bill Payment and TrueMoney readers checks recipient/biller shape,
+  initiation method, Thai baht currency, country, and positive amount limits. Existing one-argument methods
+  remain available and keep permissive field extraction. This is format validation, not payment verification.
 
 ## [0.1.0] - 2026-10-11
 

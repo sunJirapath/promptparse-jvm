@@ -63,8 +63,7 @@ public object PromptPay {
         amount: BigDecimal? = null,
         ref3: String? = null,
     ): String {
-        val billerIdOk = billerId.length in setOf(BILLER_ID_SHORT, BILLER_ID_LONG) && billerId.all(Tlv::isDigit)
-        require(billerIdOk) {
+        require(isValidBillerId(billerId)) {
             "billerId must be 13 or 15 digits"
         }
         require(ref1.isNotEmpty()) { "ref1 must not be empty" }
@@ -78,13 +77,22 @@ public object PromptPay {
      * Reads a PromptPay AnyID QR. Returns `null` unless the payload parses strictly (valid CRC), is
      * a `00 = 01` payload with the AnyID AID in tag 29, and carries a recipient sub-tag (01, 02 or 03).
      * An MSISDN written as `0066xxxxxxxxx` is returned as `0xxxxxxxxx`. Never throws.
+     *
+     * [validateFields] additionally requires a recipient in its documented wire shape, initiation
+     * method 11/12, currency 764, country TH, and a positive amount of at most 2 decimals within
+     * the generator's limits when present. National ID check digits and bank registration are not checked.
      */
     @JvmStatic
-    public fun parseAnyId(payload: String): AnyIdInfo? {
+    @JvmOverloads
+    public fun parseAnyId(
+        payload: String,
+        validateFields: Boolean = false,
+    ): AnyIdInfo? {
         val qr = PromptParse.parse(payload, strict = true) ?: return null
         if (qr.value("00") != "01" || qr.value("29", "00") != AID_ANY_ID) return null
         val type = AnyIdType.entries.firstOrNull { qr.tag("29", it.subTagId) != null } ?: return null
         var target = qr.value("29", type.subTagId)!!
+        if (validateFields && (!hasValidPaymentFields(qr) || !isValidTarget(type, target))) return null
         if (type == AnyIdType.MSISDN && target.length == MSISDN_WIRE_LENGTH && target.startsWith("0066")) {
             target = "0" + target.substring(4)
         }
@@ -95,13 +103,19 @@ public object PromptPay {
     /**
      * Reads a PromptPay Bill Payment QR. Returns `null` unless the payload parses strictly, has the
      * Bill Payment AID in tag 30 and non-empty billerId (30/01) and ref1 (30/02). Never throws.
+     * [validateFields] applies the payment-field checks in [parseAnyId] and requires a 13/15-digit biller ID.
      */
     @JvmStatic
-    public fun parseBillPayment(payload: String): BillPaymentInfo? {
+    @JvmOverloads
+    public fun parseBillPayment(
+        payload: String,
+        validateFields: Boolean = false,
+    ): BillPaymentInfo? {
         val qr = PromptParse.parse(payload, strict = true) ?: return null
         if (qr.value("00") != "01" || qr.value("30", "00") != AID_BILL_PAYMENT) return null
         val billerId = qr.value("30", "01")?.takeIf { it.isNotEmpty() } ?: return null
         val ref1 = qr.value("30", "02")?.takeIf { it.isNotEmpty() } ?: return null
+        if (validateFields && (!hasValidPaymentFields(qr) || !isValidBillerId(billerId))) return null
         val amount = readAmount(qr) ?: return null
         return BillPaymentInfo(billerId, ref1, qr.value("30", "03"), qr.value("62", "07"), amount.value)
     }
@@ -115,6 +129,27 @@ public object PromptPay {
         val text = qr.value("54") ?: return Amount(null)
         return Amounts.parse(text)?.let(::Amount)
     }
+
+    internal fun hasValidPaymentFields(qr: EmvcoQr): Boolean =
+        qr.value("01") in listOf("11", "12") && qr.value("53") == "764" && qr.value("58") == "TH" &&
+            (qr.value("54")?.let(Amounts::isValid) ?: true)
+
+    private fun isValidTarget(
+        type: AnyIdType,
+        target: String,
+    ): Boolean {
+        val length =
+            when (type) {
+                AnyIdType.MSISDN -> MSISDN_WIRE_LENGTH
+                AnyIdType.NATID -> NATID_LENGTH
+                AnyIdType.EWALLETID -> EWALLET_LENGTH
+            }
+        return target.length == length && target.all(Tlv::isDigit) &&
+            (type != AnyIdType.MSISDN || target.startsWith("0066"))
+    }
+
+    private fun isValidBillerId(billerId: String): Boolean =
+        billerId.length in setOf(BILLER_ID_SHORT, BILLER_ID_LONG) && billerId.all(Tlv::isDigit)
 
     /** Tags 00, 01, [account], 53, 58, [54], then [extra] (the order the reference's golden vectors use). */
     internal fun merchantQr(

@@ -1,6 +1,8 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -67,6 +69,42 @@ kover {
 tasks.check {
     dependsOn(tasks.koverVerify)
 }
+
+val noticeFiles = listOf(rootProject.file("LICENSE"), rootProject.file("NOTICE"))
+tasks.withType<Jar>().configureEach {
+    from(noticeFiles) { into("META-INF") }
+}
+
+val noticeJars = listOf("jar", "sourcesJar", "dokkaJavadocJar")
+val verifyJarNotices =
+    tasks.register("verifyJarNotices") {
+        group = "verification"
+        description = "Checks that all published JARs contain the complete license and attribution."
+        dependsOn(noticeJars)
+        doLast {
+            for (jar in noticeJars) {
+                val archive =
+                    tasks
+                        .named<Jar>(jar)
+                        .get()
+                        .archiveFile
+                        .get()
+                        .asFile
+                ZipFile(archive).use { zip ->
+                    for (notice in noticeFiles) {
+                        val entry =
+                            checkNotNull(zip.getEntry("META-INF/${notice.name}")) {
+                                "$jar is missing ${notice.name}"
+                            }
+                        check(zip.getInputStream(entry).use { it.readBytes() }.contentEquals(notice.readBytes())) {
+                            "$jar contains an incomplete ${notice.name}"
+                        }
+                    }
+                }
+            }
+        }
+    }
+tasks.check { dependsOn(verifyJarNotices) }
 
 // Release configuration. Nothing is published from a normal build; see .github/workflows/release.yml.
 mavenPublishing {

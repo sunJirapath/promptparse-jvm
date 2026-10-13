@@ -45,4 +45,12 @@ internal object Amounts {
         if (dots > 1 || text.startsWith('.') || text.endsWith('.')) return null
         return BigDecimal(text)
     }
+
+    /** Opt-in payment validation: positive, at most 2 decimals, and within the generator's limits. */
+    fun isValid(text: String): Boolean {
+        if (text.length > MAX_AMOUNT_LENGTH) return false
+        val amount = parse(text) ?: return false
+        return amount.signum() > 0 && amount.scale() <= 2 &&
+            amount.precision() - amount.scale() <= MAX_AMOUNT_INTEGER_DIGITS
+    }
 }

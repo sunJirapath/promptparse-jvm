@@ -11,8 +11,8 @@ public object PromptParse {
      * have at least 5 chars) or decodes to no tag.
      *
      * - **Lenient** (default): a malformed or truncated tag ends decoding and the tags before it are kept.
-     * - **[strict]**: the payload must be well-formed TLV end to end and its last 4 characters must be
-     *   the CRC of everything before them (either hex case accepted). Required-tag checks are the
+     * - **[strict]**: the payload must be well-formed TLV end to end and end in exactly one tag 63,
+     *   length 04, with a valid CRC (either hex case accepted). Required-tag checks are the
      *   job of [PromptPay.parseAnyId] / [PromptPay.parseBillPayment], as in the reference.
      *
      * With [subTags], values that decode cleanly as TLV (templates such as 29, 30, 62) get [Tag.subTags].
@@ -27,9 +27,14 @@ public object PromptParse {
     ): EmvcoQr? {
         val text = if (strict) Tlv.trimScan(payload) else Tlv.trimScanLenient(payload)
         if (!Tlv.looksLikeTlv(text)) return null
-        if (strict && !Tlv.crcMatches(text)) return null
+        if (strict && !validateCrc(text)) return null
         val decoded = Tlv.decode(text, strict) ?: return null
         if (decoded.isEmpty()) return null
+        if (strict) {
+            val crc = decoded.last()
+            val validCrcTag = crc.id == CRC_TAG_ID && crc.value.length == 4
+            if (!validCrcTag || decoded.count { it.id == CRC_TAG_ID } != 1) return null
+        }
         val tags =
             decoded.filter { it.id != CRC_TAG_ID }.map {
                 if (subTags) Tag.of(it.id, it.value) else it

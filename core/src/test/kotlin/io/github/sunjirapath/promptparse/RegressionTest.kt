@@ -139,4 +139,41 @@ class RegressionTest {
         val payload = PromptPay.anyId(AnyIdType.NATID, "1234567890123")
         assertNotNull(PromptPay.parseAnyId("$payload\r\n"))
     }
+
+    @Test
+    fun `strict parsing requires the CRC to be its own final tag`() {
+        val body = PromptPay.anyId(AnyIdType.MSISDN, "0812223333").dropLast(8)
+        for (suffix in listOf("5904", "5905X", "5910XX6304", "6310XX6304", "6300" + "6304")) {
+            val seed = body + suffix
+            val payload = seed + Tlv.checksum(seed)
+            assertNull(PromptParse.parse(payload, strict = true), suffix)
+            assertNull(PromptPay.parseAnyId(payload), suffix)
+        }
+    }
+
+    @Test
+    fun `empty and nested template children have the same representation after parsing`() {
+        val templates =
+            listOf(
+                Tag.template("29", listOf(Tag("00", "AID"), Tag("01", ""))),
+                Tag.template("62", listOf(Tag.template("07", listOf(Tag("00", "ab"))))),
+                Tag.template("62", emptyList()),
+            )
+        for (template in templates) {
+            val qr = EmvcoQr(listOf(template))
+            assertEquals(qr, PromptParse.parse(qr.encode(), strict = true))
+        }
+        assertEquals("0003AID0100", templates[0].value)
+        assertEquals(emptyList(), templates[0].subTags)
+        assertEquals(emptyList(), templates[1].subTags.single().subTags)
+    }
+
+    @Test
+    fun `TrueMoney removes only the fixed padding, preserving every local digit`() {
+        for (mobile in listOf("0012345678", "0000000000", "0801111111")) {
+            val payload = TrueMoney.build(mobile)
+            assertEquals(mobile, TrueMoney.parse(payload)!!.mobile)
+            assertEquals(mobile, TrueMoney.parse(payload, validateFields = true)!!.mobile)
+        }
+    }
 }

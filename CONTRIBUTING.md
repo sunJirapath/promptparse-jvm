@@ -23,6 +23,7 @@ cd promptparse-jvm
 | `apiCheck` | fails if the public API differs from `core/api/core.api` |
 | `koverVerify` | fails if line coverage of `core` drops under 90% |
 | `runExample` | runs the Java example, which asserts its own output |
+| `verifyJarNotices` | checks that binary, sources and documentation JARs contain the complete `LICENSE` and `NOTICE` |
 
 Useful extras:
 

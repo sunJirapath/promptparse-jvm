@@ -1,10 +1,12 @@
 package io.github.sunjirapath.promptparse
 
+import java.util.Collections
+
 /**
  * An EMVCo merchant-presented QR payload as an ordered list of top-level [tags].
  *
  * The CRC tag (63) is not data: it is never kept here and [encode] always recomputes it. For any
- * `qr` made by [PromptParse.parse] or built from [Tag.of] / [Tag.template] tags,
+ * `qr` made by [PromptParse.parse] with sub-tags enabled or built from [Tag.of] / [Tag.template] tags,
  * `PromptParse.parse(qr.encode()) == qr`.
  *
  * Immutable and thread-safe.
@@ -14,7 +16,7 @@ package io.github.sunjirapath.promptparse
 public class EmvcoQr(
     tags: List<Tag>,
 ) {
-    public val tags: List<Tag> = tags.toList()
+    public val tags: List<Tag> = Collections.unmodifiableList(ArrayList(tags))
 
     init {
         require(this.tags.none { it.id == CRC_TAG_ID }) {

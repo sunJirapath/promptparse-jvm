@@ -105,7 +105,11 @@ public final class io/github/sunjirapath/promptparse/PromptPay {
 	public static final fun billPayment (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun billPayment$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun parseAnyId (Ljava/lang/String;)Lio/github/sunjirapath/promptparse/AnyIdInfo;
+	public static final fun parseAnyId (Ljava/lang/String;Z)Lio/github/sunjirapath/promptparse/AnyIdInfo;
+	public static synthetic fun parseAnyId$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/AnyIdInfo;
 	public static final fun parseBillPayment (Ljava/lang/String;)Lio/github/sunjirapath/promptparse/BillPaymentInfo;
+	public static final fun parseBillPayment (Ljava/lang/String;Z)Lio/github/sunjirapath/promptparse/BillPaymentInfo;
+	public static synthetic fun parseBillPayment$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/BillPaymentInfo;
 }
 
 public final class io/github/sunjirapath/promptparse/SlipVerify {
@@ -160,6 +164,8 @@ public final class io/github/sunjirapath/promptparse/TrueMoney {
 	public static final fun build (Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;)Ljava/lang/String;
 	public static synthetic fun build$default (Ljava/lang/String;Ljava/math/BigDecimal;Ljava/lang/String;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun parse (Ljava/lang/String;)Lio/github/sunjirapath/promptparse/TrueMoneyInfo;
+	public static final fun parse (Ljava/lang/String;Z)Lio/github/sunjirapath/promptparse/TrueMoneyInfo;
+	public static synthetic fun parse$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/TrueMoneyInfo;
 }
 
 public final class io/github/sunjirapath/promptparse/TrueMoneyInfo {

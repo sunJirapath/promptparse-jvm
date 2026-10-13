@@ -7,6 +7,7 @@ private const val TRUEMONEY_PREFIX = "14"
 /** Mobile numbers are zero-padded to this width after the prefix; prefix + number is [WIRE_LENGTH]. */
 private const val MOBILE_PAD = 13
 private const val WIRE_LENGTH = 15
+private const val LOCAL_MOBILE_LENGTH = 10
 
 /**
  * TrueMoney Wallet payment QR. It is a PromptPay AnyID (tag 29) QR whose e-wallet sub-tag 03 is `14` plus the
@@ -41,15 +42,22 @@ public object TrueMoney {
      * Reads a TrueMoney QR. `null` unless it parses strictly (valid CRC), is a `00 = 01` payload with the
      * PromptPay AID in tag 29 and a `14`-prefixed 15-character sub-tag 03. A message that is not valid
      * UTF-16BE hex is ignored. Never throws.
+     * [validateFields] applies the payment-field checks in [PromptPay.parseAnyId] and requires
+     * the wallet's fixed padding and local mobile prefix to be zeros.
      */
     @JvmStatic
-    public fun parse(payload: String): TrueMoneyInfo? {
+    @JvmOverloads
+    public fun parse(
+        payload: String,
+        validateFields: Boolean = false,
+    ): TrueMoneyInfo? {
         val qr = PromptParse.parse(payload, strict = true) ?: return null
         if (qr.value("00") != "01" || qr.value("29", "00") != AID_ANY_ID) return null
         val wire = qr.value("29", "03") ?: return null
         if (wire.length != WIRE_LENGTH || !wire.startsWith(TRUEMONEY_PREFIX) || !wire.all(Tlv::isDigit)) return null
+        if (validateFields && (!PromptPay.hasValidPaymentFields(qr) || !wire.startsWith("140000"))) return null
         val amount = PromptPay.readAmount(qr) ?: return null
-        val mobile = "0" + wire.substring(TRUEMONEY_PREFIX.length).trimStart('0')
+        val mobile = wire.takeLast(LOCAL_MOBILE_LENGTH)
         return TrueMoneyInfo(mobile, amount.value, qr.value("81")?.let(::decodeMessage))
     }
 
