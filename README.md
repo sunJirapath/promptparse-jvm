@@ -22,12 +22,12 @@ Slip Verify / Mini QR (standard + TrueMoney) · BOT 1D barcode → QR · generic
 
 ### Install
 
-Latest published version: **0.1.0**, available on Maven Central.
+Latest version: **0.1.1**, available on Maven Central.
 
 ```kotlin
 // Gradle (Kotlin DSL)
 dependencies {
-    implementation("io.github.sunjirapath:promptparse:0.1.0")
+    implementation("io.github.sunjirapath:promptparse:0.1.1")
 }
 ```
 
@@ -36,13 +36,13 @@ dependencies {
 <dependency>
   <groupId>io.github.sunjirapath</groupId>
   <artifactId>promptparse</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 **Supported platforms:** Java 11 or newer (bytecode target 11, compile-checked with `-Xjdk-release=11`); CI runs the
 tests on JDK 11, 17, 21 and 25 on Linux and on JDK 21 on Windows. The only runtime dependency is the Kotlin stdlib.
-**Android (development branch, not yet in 0.1.0): API 21 (5.0) and newer.** The main code is checked against the Android API 21 signatures (Animal Sniffer) and
+**Android (since 0.1.1): API 21 (5.0) and newer.** The main code is checked against the Android API 21 signatures (Animal Sniffer) and
 the test vectors, Thai/emoji handling, locale independence and fuzz tests run on emulators for API 21, 24, 26, 30, 34
 and 36 in CI (`android-tests`, [workflow](.github/workflows/android.yml)). No core-library desugaring is needed. Not
 verified: R8/ProGuard minification of an app that uses the library (it uses no reflection, so none should be needed).
@@ -107,7 +107,7 @@ qr?.with("54", "99.00")?.encode()                         // edit a tag; the CRC
 BotBarcode.parse(barcodeText)?.toBillPayment()            // BOT 1D barcode -> bill payment QR
 ```
 
-On the current development branch (not yet in 0.1.0), payment readers optionally validate field shapes:
+Since 0.1.1, payment readers optionally validate field shapes:
 
 ```kotlin
 PromptPay.parseAnyId(scanned, validateFields = true)
@@ -147,7 +147,7 @@ A complete, self-checking Java example that calls every public entry point lives
 - Mobile numbers accept `0812345678`, `081-234-5678`, `+66812345678`, `66812345678`, `0066812345678`.
 - Every deliberate difference from the TypeScript reference is listed in [`docs/SPEC_NOTES.md`](docs/SPEC_NOTES.md).
 
-Development branch fixes (not yet in 0.1.0): getter lists are unmodifiable in Java as well as Kotlin;
+Fixes since 0.1.0: getter lists are unmodifiable in Java as well as Kotlin;
 `Tag.template` preserves encoded values and derives children using the parser's one-level rule (empty children
 leave the value opaque); TrueMoney parsing preserves all ten local-number digits; strict parsing requires a final
 CRC tag. These changes are listed under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
@@ -180,8 +180,8 @@ Behavior was ported from [promptparse](https://github.com/maythiwat/promptparse)
 | Lengths and CRC | UTF-16 units for lengths, UTF-8 bytes for the CRC | UTF-8 bytes for both |
 | Invalid input | generators do not validate; parsers return `null` | generators throw `IllegalArgumentException`; parsers return `null`/`false` and never throw |
 | Slip CRC | repaired if shortened; `lastIndexOf("9104")` can misplace the CRC | repaired (1-3 digits, `crcAutoFix = false` disables); the CRC is located from the end |
-| Strict payment CRC envelope (development branch) | checks the last 4 characters only | requires exactly one CRC tag `63`, length `04`, as the last decoded tag |
-| Field validation (development branch) | permissive extraction | permissive by default; `validateFields = true` checks payment/slip/barcode field shapes and rejects ambiguous critical fields |
+| Strict payment CRC envelope (since 0.1.1) | checks the last 4 characters only | requires exactly one CRC tag `63`, length `04`, as the last decoded tag |
+| Field validation (since 0.1.1) | permissive extraction | permissive by default; `validateFields = true` checks payment/slip/barcode field shapes and rejects ambiguous critical fields |
 | Whitespace | not handled | surrounding spaces, tabs and line breaks from scanners are ignored (see below) |
 
 Whitespace: strict parsing, slip/TrueMoney readers, `validateCrc` and `fixTruncatedCrc` trim spaces, tabs, `\r` and `\n` on both sides;
@@ -221,7 +221,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 > **ข้อสงวนสิทธิ์:** โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องกับ ธนาคารแห่งประเทศไทย (ธปท.) หรือธนาคารใด ๆ
 > เป็นการ implement ตามรูปแบบที่เปิดเผยต่อสาธารณะเท่านั้น ควรทดสอบ QR ที่สร้างกับธนาคารก่อนใช้งานจริง
 
-**รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) และ Android API 21 ขึ้นไปบน development branch (ยังไม่อยู่ใน `0.1.0`; ทดสอบบน emulator API 21, 24, 26, 30, 34, 36)
+**รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) และ Android API 21 ขึ้นไป (เริ่มใน `0.1.1`; ทดสอบบน emulator API 21, 24, 26, 30, 34, 36)
 
 ### เริ่มต้นใช้งาน (Kotlin) — Thai QR Kotlin
 
@@ -245,7 +245,7 @@ SlipVerifyInfo slip = SlipVerify.parse(scanned);
 - ตัวอ่านจะตัดช่องว่างและขึ้นบรรทัดใหม่ที่เครื่องสแกนต่อท้ายให้
 - ความยาว TLV นับเป็นไบต์ UTF-8 และ CRC เป็น CRC-16/CCITT-FALSE ตัวพิมพ์ใหญ่เสมอ
 - ยอดเงินใช้ `BigDecimal` ทศนิยม 2 ตำแหน่ง ปัดแบบ `HALF_UP` และไม่รับค่า <= 0
-- เวอร์ชันที่เผยแพร่บน Maven Central: `0.1.0`; บน development branch เพิ่ม `validateFields = true` ให้ตัวอ่าน AnyID/Bill Payment/TrueMoney ตรวจรูปแบบผู้รับ สกุลเงิน `764` ประเทศ `TH` และยอดเงิน (ยังไม่อยู่ใน `0.1.0`)
+- เวอร์ชันที่เผยแพร่บน Maven Central: `0.1.1` ซึ่งเพิ่ม `validateFields = true` ให้ตัวอ่าน AnyID/Bill Payment/TrueMoney ตรวจรูปแบบผู้รับ สกุลเงิน `764` ประเทศ `TH` และยอดเงิน
 - รายละเอียดความแตกต่างจากไลบรารีต้นฉบับ (TypeScript) อยู่ใน [`docs/SPEC_NOTES.md`](docs/SPEC_NOTES.md)
 
 ### เครดิต

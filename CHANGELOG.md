@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-13
+
 ### Fixed
 
 - `SlipVerify.parse` / `parseTrueMoney` used `HashMap.putIfAbsent` (Android API 24); on Android 5-6 they would have
@@ -70,5 +72,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   Every deliberate difference is in `docs/SPEC_NOTES.md` and the README table. Tag order is unchanged from
   promptparse (tag 54 follows tag 58).
 
-[Unreleased]: https://github.com/sunJirapath/promptparse-jvm/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/sunJirapath/promptparse-jvm/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/sunJirapath/promptparse-jvm/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sunJirapath/promptparse-jvm/releases/tag/v0.1.0
