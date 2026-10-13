@@ -106,4 +106,69 @@ class SemanticValidationTest {
         val payload = PromptParse.parse(anyId)!!.with("54", amount).encode()
         assertEquals(BigDecimal(amount), PromptPay.parseAnyId(payload, true)!!.amount)
     }
+
+    @Test
+    fun `duplicate critical top-level and account fields are rejected by each payment reader`() {
+        val fullBill = PromptPay.billPayment("0112233445566", "R1", "R2", BigDecimal("30"), "R3")
+        val readers =
+            listOf<Pair<String, (String, Boolean) -> Any?>>(
+                anyId to PromptPay::parseAnyId,
+                fullBill to PromptPay::parseBillPayment,
+                trueMoney to TrueMoney::parse,
+            )
+        for ((original, read) in readers) {
+            val qr = PromptParse.parse(original)!!
+            for (id in listOf("00", "01", "29", "30", "53", "54", "58", "62")) {
+                val tag = qr.tag(id) ?: continue
+                val duplicate = EmvcoQr(qr.tags + tag).encode()
+                assertNotNull(read(duplicate, false), id)
+                assertNull(read(duplicate, true), id)
+            }
+            val account = qr.tag("29") ?: qr.tag("30")!!
+            for (sub in account.subTags) {
+                val value = Tag.template(account.id, account.subTags + sub).value
+                val duplicate = qr.with(account.id, value).encode()
+                assertNotNull(read(duplicate, false), sub.id)
+                assertNull(read(duplicate, true), sub.id)
+            }
+        }
+    }
+
+    @Test
+    fun `multiple recipient types and account templates are ambiguous`() {
+        val qr = PromptParse.parse(anyId)!!
+        val account = qr.tag("29")!!
+        for (extra in listOf(Tag("02", "1234567890123"), Tag("04", "1234567890"))) {
+            val payload = qr.with("29", Tag.template("29", account.subTags + extra).value).encode()
+            assertNotNull(PromptPay.parseAnyId(payload))
+            assertNull(PromptPay.parseAnyId(payload, true))
+        }
+        val billAccount = PromptParse.parse(bill)!!.tag("30")!!
+        val mixed = EmvcoQr(qr.tags + billAccount).encode()
+        assertNotNull(PromptPay.parseAnyId(mixed))
+        assertNotNull(PromptPay.parseBillPayment(mixed))
+        assertNull(PromptPay.parseAnyId(mixed, true))
+        assertNull(PromptPay.parseBillPayment(mixed, true))
+        val tm = PromptParse.parse(trueMoney)!!
+        assertNull(TrueMoney.parse(EmvcoQr(tm.tags + billAccount).encode(), true))
+    }
+
+    @Test
+    fun `additional reference duplicates including empty values are rejected`() {
+        val qr = PromptParse.parse(bill)!!
+        for (value in listOf("R3", "")) {
+            val extra = Tag.template("62", listOf(Tag("07", "FIRST"), Tag("07", value)))
+            val payload = qr.with("62", extra.value).encode()
+            assertNotNull(PromptPay.parseBillPayment(payload))
+            assertNull(PromptPay.parseBillPayment(payload, true))
+        }
+        assertNull(PromptPay.parseBillPayment(qr.with("62", "junk").encode(), true))
+    }
+
+    @Test
+    fun `unknown extensions retain their permissive interpretation`() {
+        val qr = PromptParse.parse(anyId)!!
+        val extended = EmvcoQr(qr.tags + listOf(Tag("99", "A"), Tag("99", "B"))).encode()
+        assertNotNull(PromptPay.parseAnyId(extended, true))
+    }
 }

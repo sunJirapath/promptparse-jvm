@@ -61,3 +61,12 @@ public class Tag
             ): Tag = of(id, Tlv.encode(subTags))
         }
     }
+
+/** Known fields must be unambiguous when payment-field validation is requested. */
+internal fun hasUniqueTagIds(
+    tags: List<Tag>,
+    vararg ids: String,
+): Boolean {
+    val seen = HashSet<String>()
+    return tags.all { it.id !in ids || seen.add(it.id) }
+}

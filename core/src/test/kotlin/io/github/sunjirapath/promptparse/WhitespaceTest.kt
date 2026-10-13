@@ -36,10 +36,7 @@ class WhitespaceTest {
         val short = full.dropLast(4) + "539"
         assertEquals("T00000086", SlipVerify.parse(ws + short + ws)!!.transRef)
         assertNull(SlipVerify.parse(ws + short + ws, crcAutoFix = false))
-        val payment =
-            (1..400)
-                .map { PromptPay.anyId(AnyIdType.MSISDN, "0812223333", BigDecimal(it)) }
-                .first { it.takeLast(4).startsWith("0") }
+        val payment = LEADING_ZERO_CRC_PAYMENT
         assertEquals(payment, PromptParse.fixTruncatedCrc(ws + payment.dropLast(4) + payment.takeLast(3) + ws))
     }
 

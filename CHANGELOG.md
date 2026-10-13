@@ -18,9 +18,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - TrueMoney parsing removes only fixed padding, preserving all ten local-number digits including leading zeros.
 - All generated JARs include `META-INF/LICENSE` and `META-INF/NOTICE`; `check` verifies binary, sources and documentation JARs.
 - Installation examples use the published Maven Central version `0.1.0`.
+- CRC edge-case regression tests use recorded vectors instead of repeatedly searching for suitable inputs.
+- Generic parsing accepts a first tag value starting with a line terminator, preserving encoded QR round trips.
 
 ### Added
 
+- Field validation rejects duplicate critical payment tags, duplicate known account/reference fields,
+  multiple recipient types and mixed account templates. Default extraction still uses the first occurrence.
+- Opt-in field validation for standard/TrueMoney slip readers and BOT barcodes. Original signatures,
+  including Kotlin default-argument bridges for slip CRC repair, are preserved.
+- `artifactSmokeTest` compiles and runs a standalone Java consumer of the actual generated JAR/POM.
+  `check` includes this test and now gates both line and branch coverage at 90%.
+- Documented caller-side input-size limits for untrusted scanner/API input.
 - Android support, verified: the main code is checked against the Android API 21 signatures (Animal Sniffer), and
   instrumented tests (`android-tests`, a separate Gradle build) run on emulators for API 21, 24, 26, 30, 34 and 36.
 - Optional `validateFields` on AnyID, Bill Payment and TrueMoney readers checks recipient/biller shape,

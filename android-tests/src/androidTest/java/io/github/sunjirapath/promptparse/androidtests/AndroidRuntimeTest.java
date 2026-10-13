@@ -22,7 +22,9 @@ import io.github.sunjirapath.promptparse.Tag;
 import io.github.sunjirapath.promptparse.TrueMoney;
 import io.github.sunjirapath.promptparse.TrueMoneyInfo;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import org.junit.After;
@@ -168,6 +170,19 @@ public class AndroidRuntimeTest {
   }
 
   @Test
+  public void firstValuesStartingWithLineTerminatorsRoundTrip() {
+    for (String terminator : Arrays.asList("\n", "\r", "\u2028", "\u2029")) {
+      for (String value : Arrays.asList(terminator, terminator + "text")) {
+        EmvcoQr qr = new EmvcoQr(Arrays.asList(Tag.of("00", value)));
+        String payload = qr.encode();
+        assertEquals(qr, PromptParse.parse(payload, true));
+        assertEquals(qr, PromptParse.parse(payload));
+        assertEquals(payload, PromptParse.parse(payload).encode());
+      }
+    }
+  }
+
+  @Test
   public void emojiAndLoneSurrogatesRoundTrip() {
     String emoji = "a😀b";
     EmvcoQr qr = new EmvcoQr(Arrays.asList(Tag.of("59", emoji), Tag.of("60", "x\uD800y")));
@@ -243,6 +258,13 @@ public class AndroidRuntimeTest {
     String embeddedCrc =
         "00020101021229370016A0000006770101110113006681222333353037645802TH540530.005905X346A";
     assertNull(PromptParse.parse(embeddedCrc, true));
+    assertNotNull(SlipVerify.parse(SLIP, true, true));
+    assertNotNull(SlipVerify.parseTrueMoney(TRUEMONEY_SLIP, true, true));
+    assertNotNull(BotBarcode.parse("|099400016550100\rR\r\r0", true));
+    assertNull(BotBarcode.parse("|ABCDEFGHIJKLMNO\rR\r\r0", true));
+    List<Tag> tags = new ArrayList<>(qr.getTags());
+    tags.add(new Tag("54", "99.00"));
+    assertNull(PromptPay.parseAnyId(new EmvcoQr(tags).encode(), true));
   }
 
   @Test
@@ -265,10 +287,13 @@ public class AndroidRuntimeTest {
       PromptPay.parseAnyId(s, true);
       PromptPay.parseBillPayment(s, true);
       SlipVerify.parse(s);
+      SlipVerify.parse(s, true, true);
       SlipVerify.parseTrueMoney(s, false);
+      SlipVerify.parseTrueMoney(s, false, true);
       TrueMoney.parse(s);
       TrueMoney.parse(s, true);
       BotBarcode.parse(s);
+      BotBarcode.parse(s, true);
     }
   }
 

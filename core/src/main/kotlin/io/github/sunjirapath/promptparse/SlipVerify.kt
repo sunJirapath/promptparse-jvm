@@ -28,7 +28,7 @@ public object SlipVerify {
         sendingBank: String,
         transRef: String,
     ): String {
-        require(sendingBank.length == 3 && sendingBank.all(Tlv::isDigit)) { "sendingBank must be a 3-digit bank code" }
+        require(isBankCode(sendingBank)) { "sendingBank must be a 3-digit bank code" }
         require(transRef.isNotEmpty()) { "transRef must not be empty" }
         val root = Tag.template("00", listOf(Tag("00", SLIP_API_TYPE), Tag("01", sendingBank), Tag("02", transRef)))
         return withCrc(Tlv.encode(listOf(root, Tag("51", "TH"))), uppercase = true)
@@ -44,11 +44,24 @@ public object SlipVerify {
     public fun parse(
         payload: String,
         crcAutoFix: Boolean = true,
+    ): SlipVerifyInfo? = parse(payload, crcAutoFix, validateFields = false)
+
+    /**
+     * Standard slip reader with optional field validation. [validateFields] requires a 3-digit ASCII
+     * bank code and rejects duplicate root/country tags and duplicate known root fields. It does not verify bank registration.
+     * [crcAutoFix] has the same behavior as the original reader. Never throws.
+     */
+    @JvmStatic
+    public fun parse(
+        payload: String,
+        crcAutoFix: Boolean = true,
+        validateFields: Boolean,
     ): SlipVerifyInfo? {
-        val sub = rootFields(payload, crcAutoFix) ?: return null
+        val sub = rootFields(payload, crcAutoFix, validateFields) ?: return null
         if (sub["00"] != SLIP_API_TYPE) return null
         val bank = sub["01"]?.takeIf { it.isNotEmpty() } ?: return null
         val ref = sub["02"]?.takeIf { it.isNotEmpty() } ?: return null
+        if (validateFields && !isBankCode(bank)) return null
         return SlipVerifyInfo(bank, ref)
     }
 
@@ -66,7 +79,7 @@ public object SlipVerify {
     ): String {
         require(eventType.isNotEmpty()) { "eventType must not be empty" }
         require(transactionId.isNotEmpty()) { "transactionId must not be empty" }
-        require(date.length == 8 && date.all(Tlv::isDigit)) { "date must be 8 digits (DDMMYYYY)" }
+        require(isDateShape(date)) { "date must be 8 digits (DDMMYYYY)" }
         val root =
             Tag.template(
                 "00",
@@ -90,12 +103,24 @@ public object SlipVerify {
     public fun parseTrueMoney(
         payload: String,
         crcAutoFix: Boolean = true,
+    ): TrueMoneySlipVerifyInfo? = parseTrueMoney(payload, crcAutoFix, validateFields = false)
+
+    /**
+     * TrueMoney slip reader with optional field validation. [validateFields] requires an 8-digit ASCII
+     * date (`DDMMYYYY`, shape only) and rejects duplicate root/country tags and duplicate known root fields.
+     * [crcAutoFix] has the same behavior as the original reader. Never throws.
+     */
+    @JvmStatic
+    public fun parseTrueMoney(
+        payload: String,
+        crcAutoFix: Boolean = true,
+        validateFields: Boolean,
     ): TrueMoneySlipVerifyInfo? {
-        val sub = rootFields(payload, crcAutoFix) ?: return null
+        val sub = rootFields(payload, crcAutoFix, validateFields) ?: return null
         if (sub["00"] != TRUEMONEY_MARKER || sub["01"] != TRUEMONEY_MARKER) return null
         val eventType = sub["02"]?.takeIf { it.isNotEmpty() } ?: return null
         val transactionId = sub["03"]?.takeIf { it.isNotEmpty() } ?: return null
-        val date = sub["04"]?.takeIf { it.isNotEmpty() } ?: return null
+        val date = sub["04"]?.takeIf { it.isNotEmpty() && (!validateFields || isDateShape(it)) } ?: return null
         return TrueMoneySlipVerifyInfo(eventType, transactionId, date)
     }
 
@@ -112,14 +137,25 @@ public object SlipVerify {
     private fun rootFields(
         payload: String,
         crcAutoFix: Boolean,
+        validateFields: Boolean,
     ): Map<String, String>? {
         val body = Tlv.splitCrc(Tlv.trimScan(payload), SLIP_CRC_TAG, crcAutoFix)?.body ?: return null
-        val root = Tlv.decode(body, strict = true)?.firstOrNull { it.id == "00" } ?: return null
+        val tags = Tlv.decode(body, strict = true) ?: return null
+        val root = tags.firstOrNull { it.id == "00" } ?: return null
         val subTags = Tlv.decode(root.value, strict = true) ?: return null
+        if (validateFields &&
+            (!hasUniqueTagIds(tags, "00", "51") || !hasUniqueTagIds(subTags, "00", "01", "02", "03", "04"))
+        ) {
+            return null
+        }
         val fields = HashMap<String, String>()
         for (t in subTags) if (t.id !in fields) fields[t.id] = t.value
         return fields
     }
+
+    private fun isBankCode(bank: String): Boolean = bank.length == 3 && bank.all(Tlv::isDigit)
+
+    private fun isDateShape(date: String): Boolean = date.length == 8 && date.all(Tlv::isDigit)
 }
 
 /** Contents of a standard slip verify QR. */

@@ -18,8 +18,8 @@ class CrcTest {
 
     @Test
     fun `output is uppercase and zero padded`() {
-        // Find a payload whose CRC starts with 0 to prove the padding.
-        val padded = (0..5000).map { Tlv.checksum("a$it") }.first { it.startsWith("0") }
+        val padded = Tlv.checksum(LEADING_ZERO_CRC_PAYMENT.dropLast(4))
+        assertEquals("05D8", padded)
         assertEquals(4, padded.length)
         assertEquals(padded.uppercase(), padded)
     }

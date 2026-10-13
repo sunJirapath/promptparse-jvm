@@ -11,16 +11,17 @@ class ParseModesTest {
 
     @Test
     fun `not TLV at all`() {
-        for (s in listOf("", "0", "0002", "AAAA0000", "00x2010", "0002\n", "0002\r1", "0002 1")) {
+        for (s in listOf("", "0", "0002", "AAAA0000", "00x2010", "0002\n", "0002 1")) {
             assertNull(PromptParse.parse(s), "lenient: '${s.replace("\n", "\\n")}'")
             assertNull(PromptParse.parse(s, strict = true))
         }
     }
 
     @Test
-    fun `fifth character only has to be a non line terminator`() {
+    fun `a valid first value can contain whitespace`() {
         assertNotNull(PromptParse.parse("0001a"))
         assertNotNull(PromptParse.parse("0001 "))
+        assertEquals("\r1", PromptParse.parse("0002\r1")!!.value("00"))
     }
 
     @Test

@@ -48,6 +48,8 @@ public final class io/github/sunjirapath/promptparse/BotBarcode {
 	public static final fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;)Ljava/lang/String;
 	public static synthetic fun build$default (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/math/BigDecimal;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun parse (Ljava/lang/String;)Lio/github/sunjirapath/promptparse/BotBarcodeInfo;
+	public static final fun parse (Ljava/lang/String;Z)Lio/github/sunjirapath/promptparse/BotBarcodeInfo;
+	public static synthetic fun parse$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/BotBarcodeInfo;
 }
 
 public final class io/github/sunjirapath/promptparse/BotBarcodeInfo {
@@ -118,10 +120,14 @@ public final class io/github/sunjirapath/promptparse/SlipVerify {
 	public static final fun buildTrueMoney (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public static final fun parse (Ljava/lang/String;)Lio/github/sunjirapath/promptparse/SlipVerifyInfo;
 	public static final fun parse (Ljava/lang/String;Z)Lio/github/sunjirapath/promptparse/SlipVerifyInfo;
+	public static final fun parse (Ljava/lang/String;ZZ)Lio/github/sunjirapath/promptparse/SlipVerifyInfo;
 	public static synthetic fun parse$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/SlipVerifyInfo;
+	public static synthetic fun parse$default (Ljava/lang/String;ZZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/SlipVerifyInfo;
 	public static final fun parseTrueMoney (Ljava/lang/String;)Lio/github/sunjirapath/promptparse/TrueMoneySlipVerifyInfo;
 	public static final fun parseTrueMoney (Ljava/lang/String;Z)Lio/github/sunjirapath/promptparse/TrueMoneySlipVerifyInfo;
+	public static final fun parseTrueMoney (Ljava/lang/String;ZZ)Lio/github/sunjirapath/promptparse/TrueMoneySlipVerifyInfo;
 	public static synthetic fun parseTrueMoney$default (Ljava/lang/String;ZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/TrueMoneySlipVerifyInfo;
+	public static synthetic fun parseTrueMoney$default (Ljava/lang/String;ZZILjava/lang/Object;)Lio/github/sunjirapath/promptparse/TrueMoneySlipVerifyInfo;
 }
 
 public final class io/github/sunjirapath/promptparse/SlipVerifyInfo {

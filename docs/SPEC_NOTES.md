@@ -31,7 +31,7 @@ Status legend: ✅ port as-is · ⚠️ port with a deliberate change (see §3) 
 | `58` country | `TH` | `AnyID.ts:48`, `BillPayment.ts:47` | ✅ |
 | `54` amount | `Number(amount).toFixed(2)`, appended **after** 58 (and before 62) | `AnyID.ts:51-53`, `BillPayment.ts:50-52` | ⚠️ D2 |
 | Tag emission order (must match golden vectors) | 00, 01, 29\|30, 53, 58, [54], [62], 63 | `AnyID.ts:43-55`, `BillPayment.ts:42-58` | ✅ |
-| `parse` accept regex | `^\d{4}.+` (≥ 5 chars; first 4 are digits; 5th is not a JS line terminator) | `lib/parser.ts:14` | ✅ **[verified]** |
+| `parse` accept regex | `^\d{4}.+` (≥ 5 chars; first 4 are digits; 5th is not a JS line terminator) | `lib/parser.ts:14` | ⚠️ JVM accepts line terminators inside values; see below |
 | `parse` strict | last 4 chars (uppercased) must equal `checksum(payload minus last 4)`; **nothing else** is checked | `lib/parser.ts:18-22` | ⚠️ D3, D8 |
 | `parse` empty result | `null` if zero tags decoded | `lib/parser.ts:26-28` | ✅ |
 | `EmvcoQR.validate(crcTagId)` | re-encodes tags except CRC tag, recomputes CRC, compares to the original payload **case-sensitively** | `lib/EMVCoQR.ts:29-33` | ✅ |
@@ -93,7 +93,7 @@ Default **B**, with tests for Thai, Latin-1 (`Café`), astral (`😀`) and a len
 **Q8 — Extra length guards.** EMVCo caps tag 54 at 13 chars and several fields at 99; reference enforces none. **Default: enforce only the hard TLV limit (value ≤ 99 units, D9) and tag 54 ≤ 13 chars.**
 
 Also noted, no decision needed:
-- `parse` first-5-chars rule `^\d{4}.+`: JS `.` rejects `\n \r \u2028 \u2029`; we hand-code the same set (Java's `.` additionally rejects `\u0085`).
+- `parse` keeps the minimum 5 characters and delegates numeric header validation to the TLV decoder. Unlike the reference's `^\d{4}.+`, it accepts a first value starting with `\n`, `\r`, `\u2028` or `\u2029`, preserving `parse(encode(qr)) == qr`. The reference's regex heuristic remains in sub-tag detection.
 - Sub-tag detection runs on **every** tag whose value matches `^\d{4}.+` (e.g. tag 59 `"1234 Shop"` is attempted; accepted only if it decodes cleanly), exactly as the reference does. Ported with explicit false-positive tests.
 - Template IDs are not hard-coded in the parser (29, 30, 62 are discovered by the shape rule above).
 - Apache-2.0 for our code is compatible with porting MIT code **provided** the MIT notice travels with it → full MIT text in `NOTICE`.
@@ -232,3 +232,16 @@ These corrections supersede the earlier reference-only CRC check and factory rep
   must match their digit count (MSISDN also needs `0066`); biller IDs must be 13/15 digits; TrueMoney requires fixed
   zero padding and a local `0` prefix. Checks are structural, not bank/phone registration, national-ID checksum
   or payment-authenticity checks. Default extraction remains permissive.
+
+## 13. Opt-in ambiguity checks and reader consistency
+
+- `validateFields` rejects duplicate top-level fields `00`, `01`, `29`, `30`, `53`, `54`, `58`, `62`;
+  duplicate account fields `00`-`04`; duplicate reference `62/07`; mixed tags `29` and `30`; and multiple
+  recipient types in tag `29` (including reserved type `04`). Unknown extension IDs remain permissive.
+- Slip readers retain their original CRC-repair signatures and Kotlin default bridges. New overloads add
+  `validateFields`, checking 3 ASCII bank digits or 8 ASCII date digits, plus uniqueness of root/country tags
+  and known fields `00`-`04`. Date checks match generation: shape only, not calendar validity.
+- BOT barcode field validation requires exactly 15 ASCII biller digits. Default parsing remains permissive.
+- Input-size limits are caller policy, documented separately from format validation; no generic TLV limit is imposed.
+- Recorded synthetic fixtures `R5328` (CRC `9104`), `Z15389` (CRC `0000`) and a 9-baht payment (CRC `05D8`)
+  replace runtime searches while retaining exact payload and checksum assertions.
