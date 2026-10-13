@@ -135,7 +135,8 @@ val artifactSmokeTest =
         dir = rootProject.file("artifact-tests")
         tasks = listOf("run")
         startParameter.isOffline = gradle.startParameter.isOffline
-        startParameter.isRefreshDependencies = true
+        // File repositories are reread automatically; refresh remote dependencies only on explicit request.
+        startParameter.isRefreshDependencies = gradle.startParameter.isRefreshDependencies
         startParameter.projectProperties =
             mapOf(
                 "smokeRepository" to smokeRepository.get().asFile.absolutePath,
