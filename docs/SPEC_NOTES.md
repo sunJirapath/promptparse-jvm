@@ -213,3 +213,22 @@ Slip verify: valid standard and TrueMoney (both vectors above); truncated CRC of
 Approved: P1, P2, P3. Skipped: P4 (bank account / OTA / cross-border / tag 62 sub-fields) and P6 (lenient mobile read). **Tag order unchanged** (P5 declined: 54 stays after 58, as in promptparse).
 API shape: one `SlipVerify` object with `build` / `parse` (standard) and `buildTrueMoney` / `parseTrueMoney`.
 Implemented differences from either reference, on purpose: standard slip CRC accepted in either case (tqp: uppercase only); bank code must be 3 digits and TrueMoney date 8 digits on generate; TrueMoney slip needs both markers and all three fields (tqp's rule, not promptparse's); CRC repair searches from the end; `BotBarcode.build` rejects amounts <= 0 (tqp writes `0`, meaning "none", for 0 — pass `null` instead).
+
+## 12. Public-contract corrections (after 0.1.0)
+
+These corrections supersede the earlier reference-only CRC check and factory representation decisions above:
+
+- Strict payment parsing requires one final tag `63` of length `04` with a matching CRC. A matching last-four-character
+  checksum inside another tag, or multiple CRC tags, is rejected. Lenient parsing is unchanged; slip readers still use tag `91`.
+- Public tag lists are defensive copies wrapped with `Collections.unmodifiableList`, so Java mutations cannot break
+  value/child consistency, hashing or thread safety.
+- `Tag.template(id, children)` is canonicalized through `Tag.of(id, Tlv.encode(children))`. Encoded text is preserved;
+  children are derived one level deep and the value is opaque if any child is empty, just as in parsing.
+- TrueMoney decoding removes fixed padding instead of trimming all leading zeros. The final ten digits survive
+  round trips, even for number shapes accepted by the generator that are not allocated mobile numbers.
+- `parseAnyId`, `parseBillPayment` and `TrueMoney.parse` accept `validateFields = true` for payment-field validation.
+  They require initiation method `11`/`12`, currency `764`, country `TH`, and (if tag `54` is present) a positive
+  decimal with at most two fractional digits, ten integer digits and thirteen wire characters. AnyID recipients
+  must match their digit count (MSISDN also needs `0066`); biller IDs must be 13/15 digits; TrueMoney requires fixed
+  zero padding and a local `0` prefix. Checks are structural, not bank/phone registration, national-ID checksum
+  or payment-authenticity checks. Default extraction remains permissive.

@@ -1,5 +1,7 @@
 package io.github.sunjirapath.promptparse
 
+import java.util.Collections
+
 /**
  * One TLV element: a 2-digit [id], its [value] and, for template tags such as 29 and 30, the
  * [subTags] the value decodes to.
@@ -19,7 +21,7 @@ public class Tag
         subTags: List<Tag> = emptyList(),
     ) {
         /** Sub-tags of a template tag, or an empty list. Unmodifiable. */
-        public val subTags: List<Tag> = if (subTags.isEmpty()) emptyList() else subTags.toList()
+        public val subTags: List<Tag> = Collections.unmodifiableList(ArrayList(subTags))
 
         init {
             require(Tlv.isTagId(id)) { "Tag id must be 2 ASCII digits" }
@@ -48,11 +50,14 @@ public class Tag
                 value: String,
             ): Tag = Tag(id, value, Tlv.deriveSubTags(value))
 
-            /** A template tag whose value is the encoding of [subTags]. */
+            /**
+             * A template tag whose value is the encoding of [subTags]. Its children are re-derived as
+             * in [of]: one level only, and no children when any encoded child has an empty value.
+             */
             @JvmStatic
             public fun template(
                 id: String,
                 subTags: List<Tag>,
-            ): Tag = Tag(id, Tlv.encode(subTags), subTags)
+            ): Tag = of(id, Tlv.encode(subTags))
         }
     }

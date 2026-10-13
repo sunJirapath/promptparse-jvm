@@ -100,7 +100,7 @@ class PairsPropertyTest {
         @ForAll("refs") message: String?,
     ) {
         val info = TrueMoney.parse(TrueMoney.build("0$national", amount, message))!!
-        assertEquals("0" + national.trimStart('0'), info.mobile.takeIf { national.isNotEmpty() } ?: "")
+        assertEquals("0$national", info.mobile)
         assertEquals(rounded(amount), info.amount)
         assertEquals(message, info.message)
     }
