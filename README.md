@@ -1,9 +1,10 @@
 # promptparse-jvm — PromptPay Java & Thai QR Kotlin
 
 [![CI](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/codeql.yml/badge.svg)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/codeql.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.sunjirapath.promptparse/promptparse)](https://central.sonatype.com/artifact/io.github.sunjirapath.promptparse/promptparse)
-[![License](https://img.shields.io/github/license/sunJirapath/promptparse-jvm)](LICENSE)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FsunJirapath%2Fpromptparse-jvm%2Fbadges%2Fcoverage.json)](https://github.com/sunJirapath/promptparse-jvm/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/sunJirapath/promptparse-jvm)](LICENSE)
 
 **PromptPay Java** and **Thai QR Kotlin** library: parse, generate and validate Thai **PromptPay** / **EMVCo**
 merchant-presented QR payloads on the JVM, including slip pre-checks (**ตรวจสลิป Java**) before calling a bank API.
@@ -225,6 +226,11 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 > **ข้อสงวนสิทธิ์:** โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องกับ ธนาคารแห่งประเทศไทย (ธปท.) หรือธนาคารใด ๆ
 > เป็นการ implement ตามรูปแบบที่เปิดเผยต่อสาธารณะเท่านั้น ควรทดสอบ QR ที่สร้างกับธนาคารก่อนใช้งานจริง
 
+### ติดตั้ง
+
+เวอร์ชันล่าสุด **0.1.2** บน Maven Central: `io.github.sunjirapath.promptparse:promptparse:0.1.2`
+(ตั้งแต่ 0.1.2 groupId เปลี่ยนเป็น `io.github.sunjirapath.promptparse`; 0.1.0 และ 0.1.1 ยังอยู่ที่ `io.github.sunjirapath:promptparse`)
+
 **รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) และ Android API 21 ขึ้นไป (เริ่มใน `0.1.1`; ทดสอบบน emulator API 21, 24, 26, 30, 34, 36)
 
 ### เริ่มต้นใช้งาน (Kotlin) — Thai QR Kotlin
@@ -249,10 +255,10 @@ SlipVerifyInfo slip = SlipVerify.parse(scanned);
 - ตัวอ่านจะตัดช่องว่างและขึ้นบรรทัดใหม่ที่เครื่องสแกนต่อท้ายให้
 - ความยาว TLV นับเป็นไบต์ UTF-8 และ CRC เป็น CRC-16/CCITT-FALSE ตัวพิมพ์ใหญ่เสมอ
 - ยอดเงินใช้ `BigDecimal` ทศนิยม 2 ตำแหน่ง ปัดแบบ `HALF_UP` และไม่รับค่า <= 0
-- เวอร์ชันที่เผยแพร่บน Maven Central: `0.1.1` ซึ่งเพิ่ม `validateFields = true` ให้ตัวอ่าน AnyID/Bill Payment/TrueMoney ตรวจรูปแบบผู้รับ สกุลเงิน `764` ประเทศ `TH` และยอดเงิน
+- ตั้งแต่ `0.1.1` ตัวอ่าน AnyID/Bill Payment/TrueMoney/สลิป/บาร์โค้ด รับ `validateFields = true` เพื่อตรวจรูปแบบผู้รับ สกุลเงิน `764` ประเทศ `TH` และยอดเงิน
 - รายละเอียดความแตกต่างจากไลบรารีต้นฉบับ (TypeScript) อยู่ใน [`docs/SPEC_NOTES.md`](docs/SPEC_NOTES.md)
 
-### เครดิต
+### เครดิตและสัญญาอนุญาต
 
 พอร์ตจาก [maythiwat/promptparse](https://github.com/maythiwat/promptparse) (MIT) และอ้างอิง/เทียบพฤติกรรมกับ
 [uunw/thai-qr-payment](https://github.com/uunw/thai-qr-payment) (MIT) ดู [NOTICE](NOTICE) —
