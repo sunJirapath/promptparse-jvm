@@ -32,7 +32,7 @@ concurrency:
 jobs:
   api-check:
     name: Animal Sniffer (Android API 21 signatures)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pc-builder]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
