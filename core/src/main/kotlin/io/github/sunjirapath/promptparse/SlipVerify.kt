@@ -14,6 +14,7 @@ private const val TRUEMONEY_MARKER = "01"
  *
  * Parsers never throw and ignore surrounding whitespace. By default they repair a CRC that a bank app shortened by dropping leading zeros
  * (1-3 hex digits left); pass `crcAutoFix = false` to refuse that. Builders never shorten the CRC.
+ * Exactly one root CRC tag `91` is required, at the end, regardless of field validation.
  */
 public object SlipVerify {
     /**
@@ -141,6 +142,7 @@ public object SlipVerify {
     ): Map<String, String>? {
         val body = Tlv.splitCrc(Tlv.trimScan(payload), SLIP_CRC_TAG, crcAutoFix)?.body ?: return null
         val tags = Tlv.decode(body, strict = true) ?: return null
+        if (tags.any { it.id == SLIP_CRC_TAG }) return null
         val root = tags.firstOrNull { it.id == "00" } ?: return null
         val subTags = Tlv.decode(root.value, strict = true) ?: return null
         if (validateFields &&

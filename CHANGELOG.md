@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Fixed
+
+- TrueMoney messages require ASCII hex and well-formed UTF-16BE; malformed messages are ignored on parse,
+  and the builder rejects unpaired surrogates. Valid Thai text, emoji and lowercase hex remain supported.
+- Both slip readers require exactly one final root CRC tag `91`, even without field validation.
+  Additional root CRC tags are rejected; shortened-final-CRC repair and permissive field extraction remain available.
+
 ## [0.1.2] - 2026-10-13
 
 ### Changed

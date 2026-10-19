@@ -131,6 +131,9 @@ bank registration or payment authenticity. Existing one-argument calls retain pe
 Payment readers reject duplicate critical tags, duplicate known account/reference fields, mixed AnyID/Bill Payment
 templates and multiple recipient types when validation is enabled. Unknown extension fields remain permissive.
 Slip readers check 3-digit bank codes or 8-digit dates (shape only), and reject duplicate known fields/root tags.
+Both slip readers always require exactly one final root CRC tag `91`, including when field validation is disabled.
+TrueMoney messages accept ASCII UTF-16BE hex (either case); malformed hex or unpaired surrogates are ignored.
+`TrueMoney.build` rejects unpaired surrogates in a message.
 Barcode validation requires exactly 15 ASCII biller digits. Java slip calls use three arguments:
 `SlipVerify.parse(scanned, true, true)` and `SlipVerify.parseTrueMoney(scanned, false, true)`.
 

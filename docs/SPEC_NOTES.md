@@ -243,5 +243,15 @@ These corrections supersede the earlier reference-only CRC check and factory rep
   and known fields `00`-`04`. Date checks match generation: shape only, not calendar validity.
 - BOT barcode field validation requires exactly 15 ASCII biller digits. Default parsing remains permissive.
 - Input-size limits are caller policy, documented separately from format validation; no generic TLV limit is imposed.
+
+## 14. Message encoding and slip CRC structure corrections
+
+- TrueMoney tag `81` must contain ASCII hexadecimal encoding well-formed UTF-16BE. Malformed messages are
+  ignored without discarding other payment fields; builders reject unpaired surrogates. Thai text, paired emoji
+  surrogates, a leading U+FEFF and lowercase hex remain supported.
+- Standard and TrueMoney slip readers require exactly one root tag `91`, at the end, in every mode. A second
+  root CRC tag is structurally invalid even when the final checksum matches; this tightens default parsing of
+  malformed envelopes, while semantic field validation remains opt-in. Nested/opaque `91` text is unaffected,
+  and final CRC repair still accepts shortened checksums whose leading-zero padding matches.
 - Recorded synthetic fixtures `R5328` (CRC `9104`), `Z15389` (CRC `0000`) and a 9-baht payment (CRC `05D8`)
   replace runtime searches while retaining exact payload and checksum assertions.

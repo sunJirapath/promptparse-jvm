@@ -70,6 +70,36 @@ class SlipAndBarcodeValidationTest {
     }
 
     @ParameterizedTest
+    @ValueSource(strings = ["ABCD", "xxxx", ""])
+    fun `standard slip rejects an extra CRC tag in every parsing mode`(extraCrc: String) {
+        val payload = slip(standard("002"), listOf(Tag("91", extraCrc)))
+        for (crcAutoFix in listOf(false, true)) {
+            for (validateFields in listOf(false, true)) {
+                assertNull(SlipVerify.parse(payload, crcAutoFix, validateFields))
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["ABCD", "xxxx", ""])
+    fun `TrueMoney slip rejects an extra CRC tag in every parsing mode`(extraCrc: String) {
+        val payload = slip(trueMoney("01012025"), listOf(Tag("91", extraCrc)))
+        for (crcAutoFix in listOf(false, true)) {
+            for (validateFields in listOf(false, true)) {
+                assertNull(SlipVerify.parseTrueMoney(payload, crcAutoFix, validateFields))
+            }
+        }
+    }
+
+    @Test
+    fun `CRC tag text and nested extension fields are not duplicate root checksums`() {
+        val standard = slip(standard("002") + Tag("91", "9104ABCD"), listOf(Tag("99", "9104ABCD")))
+        assertNotNull(SlipVerify.parse(standard, validateFields = true))
+        val trueMoney = slip(trueMoney("01012025") + Tag("91", "9104ABCD"), listOf(Tag("99", "9104ABCD")))
+        assertNotNull(SlipVerify.parseTrueMoney(trueMoney, validateFields = true))
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = ["ABCDEFGHIJKLMNO", "0994000165501000", "０９９４０００１６５５０１００"])
     fun `barcode biller validation is opt-in`(biller: String) {
         val payload = "|$biller\rR1\r\r0"
