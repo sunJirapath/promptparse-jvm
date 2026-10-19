@@ -161,6 +161,43 @@ public class AndroidRuntimeTest {
   }
 
   @Test
+  public void trueMoneyMessagesRequireAsciiHexAndWellFormedUtf16() {
+    EmvcoQr qr = PromptParse.parse(TRUEMONEY_QR, true);
+    for (String hex : Arrays.asList("００４１", "D800", "DC00", "D8000041", "0041DC00")) {
+      TrueMoneyInfo info = TrueMoney.parse(qr.with("81", hex).encode(), true);
+      assertNotNull(info);
+      assertEquals("0801111111", info.getMobile());
+      assertNull(hex, info.getMessage());
+    }
+    String message = "สวัสดี 😀";
+    String payload = TrueMoney.build("0801111111", null, message);
+    EmvcoQr encoded = PromptParse.parse(payload, true);
+    assertEquals(message, TrueMoney.parse(payload).getMessage());
+    assertEquals(
+        message,
+        TrueMoney.parse(encoded.with("81", encoded.value("81").toLowerCase(Locale.ROOT)).encode())
+            .getMessage());
+    for (String malformed : Arrays.asList("\uD800", "\uDC00", "\uD800A", "A\uDC00")) {
+      try {
+        TrueMoney.build("0801111111", null, malformed);
+        fail("builder must reject an unpaired surrogate");
+      } catch (IllegalArgumentException expected) {
+        // ok
+      }
+    }
+  }
+
+  @Test
+  public void slipReadersRejectDuplicateRootCrcTags() {
+    String standard = "004000060000010103002021900021231231212000115102TH9104ABCD9104E6D4";
+    String trueMoney = "00480002010102010203P2P0313TXN00012345670408250120249104ABCD9104CDBA";
+    assertNull(SlipVerify.parse(standard));
+    assertNull(SlipVerify.parse(standard, false, true));
+    assertNull(SlipVerify.parseTrueMoney(trueMoney));
+    assertNull(SlipVerify.parseTrueMoney(trueMoney, false, true));
+  }
+
+  @Test
   public void thaiTextUsesUtf8ByteLengthsAndCrc() {
     EmvcoQr qr = PromptParse.parse(THAI_MERCHANT, true);
     assertNotNull("strict parse of the Thai vector", qr);

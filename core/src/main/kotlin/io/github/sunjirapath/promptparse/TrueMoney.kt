@@ -1,6 +1,9 @@
 package io.github.sunjirapath.promptparse
 
 import java.math.BigDecimal
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.CodingErrorAction
 
 private const val TRUEMONEY_PREFIX = "14"
 
@@ -8,6 +11,7 @@ private const val TRUEMONEY_PREFIX = "14"
 private const val MOBILE_PAD = 13
 private const val WIRE_LENGTH = 15
 private const val LOCAL_MOBILE_LENGTH = 10
+private const val MAX_MESSAGE_UNITS = 24
 
 /**
  * TrueMoney Wallet payment QR. It is a PromptPay AnyID (tag 29) QR whose e-wallet sub-tag 03 is `14` plus the
@@ -18,7 +22,7 @@ public object TrueMoney {
     /**
      * @param mobile Thai mobile number in any form [PromptPay.anyId] accepts for `MSISDN`.
      * @param amount `null` for a static QR; otherwise above 0, rounded `HALF_UP` to 2 decimals.
-     * @param message personal message (tag 81, UTF-16BE hex); `null` or empty for none, at most 24 UTF-16 units.
+     * @param message well-formed Unicode message (tag 81, UTF-16BE hex); `null` or empty for none, at most 24 UTF-16 units.
      * @throws IllegalArgumentException on an invalid mobile, amount or message.
      */
     @JvmStatic
@@ -62,6 +66,8 @@ public object TrueMoney {
     }
 
     private fun encodeMessage(message: String): String {
+        require(message.length <= MAX_MESSAGE_UNITS) { "message must be at most $MAX_MESSAGE_UNITS UTF-16 units" }
+        require(Charsets.UTF_16BE.newEncoder().canEncode(message)) { "message must be well-formed UTF-16" }
         val sb = StringBuilder(message.length * 4)
         for (c in message) {
             sb.append(
@@ -76,13 +82,17 @@ public object TrueMoney {
 
     private fun decodeMessage(hex: String): String? {
         if (hex.isEmpty() || hex.length % 4 != 0) return null
-        val sb = StringBuilder(hex.length / 4)
-        for (i in hex.indices step 4) {
-            val unit = hex.substring(i, i + 4).toIntOrNull(16) ?: return null
-            if (hex[i] == '+' || hex[i] == '-') return null
-            sb.append(unit.toChar())
+        if (hex.any { it !in '0'..'9' && it !in 'a'..'f' && it !in 'A'..'F' }) return null
+        val bytes = ByteArray(hex.length / 2) { i -> hex.substring(i * 2, i * 2 + 2).toInt(16).toByte() }
+        return try {
+            Charsets.UTF_16BE
+                .newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes))
+                .toString()
+        } catch (_: CharacterCodingException) {
+            null
         }
-        return sb.toString()
     }
 }
 
