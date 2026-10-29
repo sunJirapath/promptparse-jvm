@@ -28,6 +28,8 @@ Latest version: **0.1.2**, available on Maven Central.
 > **Coordinates changed in 0.1.2.** The groupId is now `io.github.sunjirapath.promptparse` (it matches the Java
 > package). Versions 0.1.0 and 0.1.1 stay on Maven Central under the old `io.github.sunjirapath:promptparse`;
 > change the dependency below when you upgrade. The API is the same.
+>
+> The GitHub release `v0.1.1` is superseded by `v0.1.2`; please use 0.1.2 or newer.
 
 ```kotlin
 // Gradle (Kotlin DSL)
@@ -233,6 +235,8 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 เวอร์ชันล่าสุด **0.1.2** บน Maven Central: `io.github.sunjirapath.promptparse:promptparse:0.1.2`
 (ตั้งแต่ 0.1.2 groupId เปลี่ยนเป็น `io.github.sunjirapath.promptparse`; 0.1.0 และ 0.1.1 ยังอยู่ที่ `io.github.sunjirapath:promptparse`)
+
+GitHub release `v0.1.1` ถูกแทนที่ด้วย `v0.1.2` แล้ว ควรใช้ 0.1.2 ขึ้นไป
 
 **รองรับ:** Java 11 ขึ้นไป (ทดสอบบน JDK 11, 17, 21, 25 และ Windows) และ Android API 21 ขึ้นไป (เริ่มใน `0.1.1`; ทดสอบบน emulator API 21, 24, 26, 30, 34, 36)
 
