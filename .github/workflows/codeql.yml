@@ -44,7 +44,8 @@ jobs:
           build-mode: manual
 
       - name: Compile (no tests)
-        run: ./gradlew :core:compileKotlin :examples:java:compileJava --no-daemon --console=plain -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
+        # CodeQL must observe compilation even when caches or outputs survive on the self-hosted runner.
+        run: ./gradlew :core:compileKotlin :examples:java:compileJava --no-daemon --no-build-cache --rerun-tasks --console=plain -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64
 
       - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
